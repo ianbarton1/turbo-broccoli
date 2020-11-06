@@ -1,6 +1,6 @@
 # turbo_broccoli
 
-A new Flutter project.
+A new Flutter project which will provide a personal plant watering tracker system.
 
 ## Getting Started
 
