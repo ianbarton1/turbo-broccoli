@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class Plant {
   int uid;
   String name;
@@ -19,7 +21,7 @@ class Plant {
   void waterPlant() {
     previousWater = lastWatered;
     lastWatered = DateTime.now();
-    dbw = lastWatered.difference(previousWater).inDays;
+    dbw = max(1, lastWatered.difference(previousWater).inDays);
     multiplier = 0.75;
     nextWater = suggestedWaterDate();
   }
@@ -30,6 +32,6 @@ class Plant {
 
   DateTime suggestedWaterDate() {
     return lastWatered
-        .add(new Duration(days: (dbw.toDouble() * multiplier).round()));
+        .add(new Duration(days: max((dbw.toDouble() * multiplier).round(), 1)));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'dart:developer';
@@ -11,8 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //this is some dev code to add a new plant
-
-    Plant plantA = new Plant(
+    PlantCollection plantList = new PlantCollection();
+    plantList.addNew(new Plant(
       uid: 5,
       name: 'Jade Plant',
       lastWatered: DateTime(2020, 12, 17),
@@ -20,11 +21,9 @@ class MyApp extends StatelessWidget {
       nextWater: DateTime(2019, 12, 29),
       dbw: 0,
       multiplier: 0.75,
-    );
-
-    inspect(plantA);
-    plantA.waterPlant();
-    inspect(plantA);
+    ));
+    print('Hello');
+    inspect(plantList);
 
     return MaterialApp(
       title: 'Turbo Broccoli',
@@ -56,8 +55,14 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      drawer: Drawer(),
-      body: Center(child: null),
+      drawer: Drawer(child: MainMenu()),
+      body: Center(
+          child: ListView.builder(
+        itemCount: 25,
+        itemBuilder: (context, index) {
+          return Container();
+        },
+      )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {});
