@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/plant_collection.dart';
+import 'dart:developer';
 
 void main() {
   runApp(MyApp());
@@ -7,6 +10,22 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    //this is some dev code to add a new plant
+
+    Plant plantA = new Plant(
+      uid: 5,
+      name: 'Jade Plant',
+      lastWatered: DateTime(2020, 12, 17),
+      previousWater: DateTime(2019, 12, 20),
+      nextWater: DateTime(2019, 12, 29),
+      dbw: 0,
+      multiplier: 0.75,
+    );
+
+    inspect(plantA);
+    plantA.waterPlant();
+    inspect(plantA);
+
     return MaterialApp(
       title: 'Turbo Broccoli',
       theme: ThemeData(
@@ -16,7 +35,8 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         brightness: Brightness.dark,
       ),
-      home: Home(title: 'Turbo Broccoli'),
+      initialRoute: '/',
+      routes: {'/': (context) => Home(title: 'Turbo Broccoli')},
     );
   }
 }
