@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:intl/intl.dart';
 
 class Plant {
   int uid;
@@ -34,4 +35,14 @@ class Plant {
     return lastWatered
         .add(new Duration(days: max((dbw.toDouble() * multiplier).round(), 1)));
   }
+
+  Map<String, dynamic> toJson() => {
+        'uid': uid,
+        'name': name,
+        'lastWatered': DateFormat('yyyy-MM-dd').format(lastWatered),
+        'nextWater': DateFormat('yyyy-MM-dd').format(nextWater),
+        'previousWater': DateFormat('yyyy-MM-dd').format(previousWater),
+        'dbw': dbw,
+        'multiplier': multiplier,
+      };
 }

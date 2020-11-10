@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
+import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'dart:developer';
@@ -22,8 +25,9 @@ class MyApp extends StatelessWidget {
       dbw: 0,
       multiplier: 0.75,
     ));
-    print('Hello');
     inspect(plantList);
+    print(jsonEncode(plantList.plantList[0].toJson()));
+    //saveDisk(plantList);
 
     return MaterialApp(
       title: 'Turbo Broccoli',
