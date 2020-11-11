@@ -18,11 +18,10 @@ void saveDisk(PlantCollection saveData) async {
 //   return loadData;
 // }
 
-Future<String> loadDisk() async {
+Future<List<dynamic>> loadDisk() async {
   SharedPreferences plants = await SharedPreferences.getInstance();
   //loadData = PlantCollection();
-  String loadData;
-  loadData = plants.get('plants');
-  print("loaded" + loadData);
+  List<dynamic> loadData;
+  loadData = jsonDecode(plants.get('plants'));
   return loadData;
 }

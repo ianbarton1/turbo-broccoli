@@ -16,31 +16,42 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     //this is some dev code to add a new plant
     PlantCollection plantList = new PlantCollection();
-    plantList.addNew(new Plant(
-      uid: 5,
-      name: 'Jade Tree',
-      lastWatered: DateTime(2020, 12, 17),
-      previousWater: DateTime(2019, 12, 20),
-      nextWater: DateTime(2019, 12, 29),
-      dbw: 0,
-      multiplier: 0.75,
-    ));
-    plantList.addNew(new Plant(
-      uid: 6,
-      name: 'Cactus',
-      lastWatered: DateTime(2020, 12, 17),
-      previousWater: DateTime(2019, 12, 20),
-      nextWater: DateTime(2019, 12, 29),
-      dbw: 2,
-      multiplier: 0.75,
-    ));
-    inspect(plantList);
-    print(plantList.toJson());
+    // plantList.addNew(new Plant(
+    //   uid: 5,
+    //   name: 'Jade Tree',
+    //   lastWatered: DateTime(2020, 12, 17),
+    //   previousWater: DateTime(2019, 12, 20),
+    //   nextWater: DateTime(2019, 12, 29),
+    //   dbw: 0,
+    //   multiplier: 0.75,
+    // ));
+    // plantList.addNew(new Plant(
+    //   uid: 6,
+    //   name: 'Cactus',
+    //   lastWatered: DateTime(2020, 12, 17),
+    //   previousWater: DateTime(2019, 12, 20),
+    //   nextWater: DateTime(2019, 12, 29),
+    //   dbw: 2,
+    //   multiplier: 0.75,
+    // ));
+    //inspect(plantList);
+    //print(plantList.toJson());
 
     ///print(jsonEncode(plantList.plantList[0].toJson()));
     //saveDisk(plantList);
-    loadDisk();
-
+    //loadDisk();
+    // plantList.addNew(new Plant(
+    //   uid: 69,
+    //   name: 'Cactus',
+    //   lastWatered: DateTime(2020, 12, 17),
+    //   previousWater: DateTime(2019, 12, 20),
+    //   nextWater: DateTime(2019, 12, 29),
+    //   dbw: 2,
+    //   multiplier: 0.75,
+    // ));
+    //aveDisk(plantList);
+    plantList.fromDisk();
+    print(plantList.plantList[0].uid);
     return MaterialApp(
       title: 'Turbo Broccoli',
       theme: ThemeData(
