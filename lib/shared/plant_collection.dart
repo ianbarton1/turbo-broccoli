@@ -13,4 +13,8 @@ class PlantCollection {
   bool idCheck(int id) {
     return false;
   }
+
+  List<Map<String, dynamic>> toJson() {
+    return (plantList.map((e) => e.toJson())).toList();
+  }
 }
