@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
@@ -14,44 +16,6 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    //this is some dev code to add a new plant
-    PlantCollection plantList = new PlantCollection();
-    // plantList.addNew(new Plant(
-    //   uid: 5,
-    //   name: 'Jade Tree',
-    //   lastWatered: DateTime(2020, 12, 17),
-    //   previousWater: DateTime(2019, 12, 20),
-    //   nextWater: DateTime(2019, 12, 29),
-    //   dbw: 0,
-    //   multiplier: 0.75,
-    // ));
-    // plantList.addNew(new Plant(
-    //   uid: 6,
-    //   name: 'Cactus',
-    //   lastWatered: DateTime(2020, 12, 17),
-    //   previousWater: DateTime(2019, 12, 20),
-    //   nextWater: DateTime(2019, 12, 29),
-    //   dbw: 2,
-    //   multiplier: 0.75,
-    // ));
-    //inspect(plantList);
-    //print(plantList.toJson());
-
-    ///print(jsonEncode(plantList.plantList[0].toJson()));
-    //saveDisk(plantList);
-    //loadDisk();
-    // plantList.addNew(new Plant(
-    //   uid: 69,
-    //   name: 'Cactus',
-    //   lastWatered: DateTime(2020, 12, 17),
-    //   previousWater: DateTime(2019, 12, 20),
-    //   nextWater: DateTime(2019, 12, 29),
-    //   dbw: 2,
-    //   multiplier: 0.75,
-    // ));
-    //aveDisk(plantList);
-    plantList.fromDisk();
-    print(plantList.plantList[0].uid);
     return MaterialApp(
       title: 'Turbo Broccoli',
       theme: ThemeData(
@@ -76,6 +40,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  PlantCollection plantList;
+  void populateList() async {
+    plantList = await fromDisk();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    populateList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,14 +60,26 @@ class _HomeState extends State<Home> {
       ),
       drawer: Drawer(child: MainMenu()),
       body: Center(
-          child: ListView.builder(
-        itemCount: 25,
-        itemBuilder: (context, index) {
-          return Container();
-        },
-      )),
+        child: ListView.builder(
+            itemCount: plantList != null ? plantList.plantList.length : 0,
+            itemBuilder: (context, index) {
+              return plantList != null
+                  ? Column(children: [
+                      InkWell(
+                        child: PlantCard(tommy: plantList.plantList[index]),
+                        onTap: () {
+                          print(plantList.plantList.removeAt(index));
+                          print('attempt remove');
+                          setState(() {});
+                        },
+                      ),
+                    ])
+                  : Center();
+            }),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          saveDisk(plantList);
           setState(() {});
         },
         backgroundColor: Colors.green[400],

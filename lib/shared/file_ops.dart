@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 
 //PlantCollection loadData;
@@ -24,4 +25,22 @@ Future<List<dynamic>> loadDisk() async {
   List<dynamic> loadData;
   loadData = jsonDecode(plants.get('plants'));
   return loadData;
+}
+
+Future<PlantCollection> fromDisk() async {
+  List<dynamic> temp = await loadDisk();
+  PlantCollection result = new PlantCollection();
+  temp.forEach((e) {
+    result.addNew(new Plant(
+      dbw: e['dbw'],
+      uid: e['uid'],
+      name: e['name'],
+      previousWater: DateTime.parse(e['previousWater']),
+      lastWatered: DateTime.parse(e['lastWatered']),
+      nextWater: DateTime.parse(e['nextWater']),
+      multiplier: e['multiplier'],
+    ));
+  });
+
+  return result;
 }
