@@ -40,7 +40,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  PlantCollection plantList;
+  static PlantCollection plantList;
   void populateList() async {
     plantList = await fromDisk();
     setState(() {});
@@ -58,7 +58,9 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      drawer: Drawer(child: MainMenu()),
+      drawer: Drawer(
+        child: MainMenu(),
+      ),
       body: Center(
         child: ListView.builder(
             itemCount: plantList != null ? plantList.plantList.length : 0,
