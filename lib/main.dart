@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
@@ -9,26 +11,14 @@ import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'dart:developer';
 
-void main() {
-  runApp(MyApp());
-}
+PlantCollection plantList;
+Random rng = new Random();
+bool _showAll = false;
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Turbo Broccoli',
-      theme: ThemeData(
-        fontFamily: 'Roboto',
-        primaryColor: Colors.green[900],
-        accentColor: Colors.green[450],
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        brightness: Brightness.dark,
-      ),
-      initialRoute: '/',
-      routes: {'/': (context) => Home(title: 'Turbo Broccoli')},
-    );
-  }
+void main() {
+  runApp(Home(
+    title: 'Turbo Broccoli',
+  ));
 }
 
 class Home extends StatefulWidget {
@@ -37,56 +27,98 @@ class Home extends StatefulWidget {
 
   @override
   _HomeState createState() => _HomeState();
+
+  Widget build(BuildContext context) {
+    plantList.orderCollection();
+    return MaterialApp(
+      initialRoute: '/',
+      routes: {'/': (context) => Home(title: 'Turbo Broccoli')},
+    );
+  }
 }
 
 class _HomeState extends State<Home> {
-  static PlantCollection plantList;
   void populateList() async {
     plantList = await fromDisk();
+    if (plantList == null) plantList = new PlantCollection();
     setState(() {});
   }
+
+  int liveCount = 0;
 
   @override
   void initState() {
     super.initState();
-    populateList();
+    if (plantList == null) populateList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    plantList.orderCollection();
+    liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
+    return MaterialApp(
+      routes: {
+        '/home': (context) => Home(
+              title: 'Turbo Broccoli',
+            )
+      },
+      title: 'Turbo Broccoli',
+      theme: ThemeData(
+        fontFamily: 'Roboto',
+        primaryColor: Colors.green[900],
+        accentColor: Colors.green[450],
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        brightness: Brightness.dark,
       ),
-      drawer: Drawer(
-        child: MainMenu(),
-      ),
-      body: Center(
-        child: ListView.builder(
-            itemCount: plantList != null ? plantList.plantList.length : 0,
-            itemBuilder: (context, index) {
-              return plantList != null
-                  ? Column(children: [
-                      InkWell(
-                        child: PlantCard(tommy: plantList.plantList[index]),
-                        onTap: () {
-                          print(plantList.plantList.removeAt(index));
-                          print('attempt remove');
-                          setState(() {});
-                        },
-                      ),
-                    ])
-                  : Center();
-            }),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          saveDisk(plantList);
-          setState(() {});
-        },
-        backgroundColor: Colors.green[400],
-        tooltip: 'Save Progress',
-        child: Icon(Icons.save),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: [
+            IconButton(
+                icon: _showAll
+                    ? FaIcon(FontAwesomeIcons.eye)
+                    : FaIcon(FontAwesomeIcons.lowVision),
+                onPressed: () {
+                  setState(() {
+                    _showAll ^= true;
+                  });
+                })
+          ],
+        ),
+        drawer: Drawer(
+          child: MainMenu(),
+        ),
+        body: Center(
+          child: ListView.builder(
+              itemCount: plantList != null
+                  ? min(plantList.plantList.length, liveCount)
+                  : 0,
+              itemBuilder: (context, index) {
+                return plantList != null
+                    ? Column(children: [
+                        InkWell(
+                          child: PlantCard(
+                              tommy: plantList.plantList[index], index: index),
+                          onTap: () {
+                            print(plantList.plantList.removeAt(index));
+                            print('attempt remove');
+                            setState(() {});
+                          },
+                        ),
+                      ])
+                    : Center();
+              }),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            //saveDisk(plantList);
+            plantList.orderCollection();
+            setState(() {});
+          },
+          backgroundColor: Colors.green[400],
+          tooltip: 'Save Progress',
+          child: Icon(Icons.save),
+        ),
       ),
     );
   }

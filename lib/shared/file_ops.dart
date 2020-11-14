@@ -39,6 +39,9 @@ Future<PlantCollection> fromDisk() async {
       lastWatered: DateTime.parse(e['lastWatered']),
       nextWater: DateTime.parse(e['nextWater']),
       multiplier: e['multiplier'],
+      checkStatus: e['checkStatus'],
+      section: e['section'],
+      zone: e['zone'],
     ));
   });
 

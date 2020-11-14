@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class Plant {
@@ -9,6 +10,9 @@ class Plant {
   DateTime nextWater;
   int dbw;
   double multiplier;
+  int section;
+  int zone;
+  int checkStatus = 0;
 
   Plant(
       {this.uid,
@@ -17,7 +21,10 @@ class Plant {
       this.lastWatered,
       this.nextWater,
       this.dbw,
-      this.multiplier});
+      this.multiplier,
+      this.section,
+      this.zone,
+      this.checkStatus});
 
   void waterPlant() {
     previousWater = lastWatered;
@@ -32,17 +39,26 @@ class Plant {
   }
 
   DateTime suggestedWaterDate() {
-    return lastWatered
-        .add(new Duration(days: max((dbw.toDouble() * multiplier).round(), 1)));
+    return lastWatered.add(
+        new Duration(days: max((dbw.toDouble() * multiplier).round(), -30)));
   }
 
   Map<String, dynamic> toJson() => {
         'uid': uid,
         'name': name,
-        'lastWatered': DateFormat('yyyy-MM-dd').format(lastWatered),
-        'nextWater': DateFormat('yyyy-MM-dd').format(nextWater),
-        'previousWater': DateFormat('yyyy-MM-dd').format(previousWater),
+        'lastWatered': lastWatered != null
+            ? DateFormat('yyyy-MM-dd').format(lastWatered)
+            : null,
+        'nextWater': nextWater != null
+            ? DateFormat('yyyy-MM-dd').format(nextWater)
+            : null,
+        'previousWater': previousWater != null
+            ? DateFormat('yyyy-MM-dd').format(previousWater)
+            : null,
         'dbw': dbw,
         'multiplier': multiplier,
+        'checkStatus': checkStatus,
+        'section': section,
+        'zone': zone,
       };
 }
