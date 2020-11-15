@@ -39,6 +39,26 @@ class PlantCollection {
     return false;
   }
 
+  void actionChanges() {
+    plantList.forEach((element) {
+      switch (element.checkStatus) {
+        case (1):
+          {
+            print('check plant');
+            element.checkPlant();
+          }
+          break;
+        case (2):
+          {
+            print('water plant');
+            element.waterPlant();
+          }
+          break;
+      }
+    });
+    orderCollection();
+  }
+
   int freeID() {
     for (int i = 0; i < 200; i++) {
       if (!idCheck(i)) {

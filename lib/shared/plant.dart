@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:dart_date/dart_date.dart';
 
 class Plant {
   int uid;
@@ -32,10 +33,16 @@ class Plant {
     dbw = max(1, lastWatered.difference(previousWater).inDays);
     multiplier = 0.75;
     nextWater = suggestedWaterDate();
+    checkStatus = 0;
   }
 
   void checkPlant() {
+    DateTime nextWaterBefore = nextWater;
     multiplier += 0.25;
+    nextWater = suggestedWaterDate();
+    if (nextWater.isSameDay(nextWaterBefore))
+      nextWater = nextWater.add(Duration(days: 1));
+    checkStatus = 0;
   }
 
   DateTime suggestedWaterDate() {

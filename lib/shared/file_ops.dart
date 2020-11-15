@@ -23,7 +23,11 @@ Future<List<dynamic>> loadDisk() async {
   SharedPreferences plants = await SharedPreferences.getInstance();
   //loadData = PlantCollection();
   List<dynamic> loadData;
+  if (!plants.containsKey('plants')) {
+    plants.setString('plants', '[]');
+  }
   loadData = jsonDecode(plants.get('plants'));
+
   return loadData;
 }
 

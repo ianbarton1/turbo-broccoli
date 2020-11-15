@@ -119,12 +119,13 @@ class _HomeState extends State<Home> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             //saveDisk(plantList);
-            plantList.orderCollection();
+            print('this button works');
+            plantList.actionChanges();
             setState(() {});
           },
           backgroundColor: Colors.green[400],
           tooltip: 'Save Progress',
-          child: Icon(Icons.save),
+          child: FaIcon(FontAwesomeIcons.checkSquare),
         ),
       ),
     );

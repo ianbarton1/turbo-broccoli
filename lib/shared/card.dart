@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class PlantCard extends StatefulWidget {
   final Plant tommy;
-  int index;
+  final int index;
   //constructor?
   PlantCard({this.tommy, this.index});
 

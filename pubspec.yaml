@@ -26,6 +26,8 @@ dependencies:
   shared_preferences: ^0.5.12+4
   intl: ^0.16.1
   font_awesome_flutter: ^8.10.0
+  dart_date: ^1.0.7
+
 
 
   # The following adds the Cupertino Icons font to your application.
