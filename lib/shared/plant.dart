@@ -39,8 +39,8 @@ class Plant {
   }
 
   DateTime suggestedWaterDate() {
-    return lastWatered.add(
-        new Duration(days: max((dbw.toDouble() * multiplier).round(), -30)));
+    return lastWatered
+        .add(new Duration(days: max((dbw.toDouble() * multiplier).round(), 1)));
   }
 
   Map<String, dynamic> toJson() => {

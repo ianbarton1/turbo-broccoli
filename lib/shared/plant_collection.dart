@@ -31,7 +31,21 @@ class PlantCollection {
 
   //check to see if an id exists in the list
   bool idCheck(int id) {
+    for (int i = 0; i < plantList.length; i++) {
+      if (plantList[i].uid == id) {
+        return true;
+      }
+    }
     return false;
+  }
+
+  int freeID() {
+    for (int i = 0; i < 200; i++) {
+      if (!idCheck(i)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   List<Map<String, dynamic>> toJson() {

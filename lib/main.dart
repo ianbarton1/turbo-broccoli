@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
@@ -32,7 +33,9 @@ class Home extends StatefulWidget {
     plantList.orderCollection();
     return MaterialApp(
       initialRoute: '/',
-      routes: {'/': (context) => Home(title: 'Turbo Broccoli')},
+      routes: {
+        '/': (context) => Home(title: 'Turbo Broccoli'),
+      },
     );
   }
 }
@@ -54,13 +57,17 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    plantList.orderCollection();
-    liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
+    if (plantList != null) {
+      plantList.orderCollection();
+      liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
+    }
+
     return MaterialApp(
       routes: {
         '/home': (context) => Home(
               title: 'Turbo Broccoli',
-            )
+            ),
+        '/add_new': (context) => NewPlant()
       },
       title: 'Turbo Broccoli',
       theme: ThemeData(

@@ -28,23 +28,7 @@ class _MainMenuState extends State<MainMenu> {
                         title: Text('Add a New Plant'),
                         onTap: () {
                           setState(() {
-                            plantList.addNew(new Plant(
-                              uid: rng.nextInt(1000),
-                              name: 'Test Plant',
-                              previousWater: DateTime(1990, 11, 14),
-                              lastWatered: DateTime(2020, 11, 15),
-                              dbw: rng.nextInt(30) - 60,
-                              multiplier: 0.75,
-                              section: rng.nextInt(7),
-                              nextWater: DateTime(2020, 11, 15),
-                              checkStatus: 0,
-                            ));
-                            plantList.plantList[plantList.plantList.length - 1]
-                                    .nextWater =
-                                plantList
-                                    .plantList[plantList.plantList.length - 1]
-                                    .suggestedWaterDate();
-                            Navigator.pushReplacementNamed(context, '/home');
+                            Navigator.popAndPushNamed(context, '/add_new');
                           });
                         }),
                     ListTile(

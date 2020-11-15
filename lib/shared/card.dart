@@ -64,8 +64,7 @@ class _PlantCardState extends State<PlantCard> {
                   Expanded(
                     child: IconButton(
                       iconSize: 45,
-                      icon: FaIcon(FontAwesomeIcons.checkCircle,
-                          color: textColor),
+                      icon: FaIcon(FontAwesomeIcons.check, color: textColor),
                       onPressed: () {
                         setState(() {
                           // widget.tommy.checkStatus = 2;
@@ -81,22 +80,32 @@ class _PlantCardState extends State<PlantCard> {
                   Expanded(
                     child: IconButton(
                       iconSize: 40,
-                      icon:
-                          FaIcon(FontAwesomeIcons.infoCircle, color: textColor),
+                      icon: FaIcon(FontAwesomeIcons.info, color: textColor),
                       onPressed: () {},
                     ),
                   ),
                   Expanded(
                     child: IconButton(
                       iconSize: 45,
-                      icon: FaIcon(FontAwesomeIcons.timesCircle,
-                          color: textColor),
+                      icon: FaIcon(FontAwesomeIcons.ban, color: textColor),
                       onPressed: () {
                         setState(() {
                           plantList.plantList[widget.index].checkStatus =
                               plantList.plantList[widget.index].checkStatus == 1
                                   ? 0
                                   : 1;
+                          saveDisk(plantList);
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: IconButton(
+                      iconSize: 45,
+                      icon: FaIcon(FontAwesomeIcons.eraser, color: textColor),
+                      onPressed: () {
+                        setState(() {
+                          plantList.plantList[widget.index].checkStatus = 0;
                           saveDisk(plantList);
                         });
                       },
