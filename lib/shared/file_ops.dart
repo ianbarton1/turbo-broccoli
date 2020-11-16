@@ -46,6 +46,7 @@ Future<PlantCollection> fromDisk() async {
       checkStatus: e['checkStatus'],
       section: e['section'],
       zone: e['zone'],
+      activeWatered: DateTime.parse(e['activeWatered']),
     ));
   });
 

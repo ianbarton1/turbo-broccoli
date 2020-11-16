@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:turbo_broccoli/main.dart';
@@ -6,10 +7,18 @@ import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:intl/intl.dart';
 
 class PlantCard extends StatefulWidget {
+  final Function() notifyParent;
   final Plant tommy;
   final int index;
+  final bool allowDelete;
   //constructor?
-  PlantCard({this.tommy, this.index});
+  PlantCard(
+      {Key key,
+      this.tommy,
+      this.index,
+      this.allowDelete,
+      @required this.notifyParent})
+      : super(key: key);
 
   @override
   _PlantCardState createState() => _PlantCardState();
@@ -47,14 +56,75 @@ class _PlantCardState extends State<PlantCard> {
         }
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+      padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
       child: Card(
         color: tileColor,
         child: ListTile(
           tileColor: tileColor,
-          title: Text(
-            '${widget.tommy.uid} - ${widget.tommy.name} - ${widget.tommy.section} - ${DateFormat('yyyy-MM-dd').format(widget.tommy.nextWater)}',
-            style: TextStyle(color: textColor),
+          // title: Text(
+          //   '${widget.tommy.uid} - ${widget.tommy.name} - ${widget.tommy.section} - ${DateFormat('yyyy-MM-dd').format(widget.tommy.nextWater)}',
+          //   style: TextStyle(color: textColor),
+          title: Column(
+            children: [
+              Row(
+                children: [
+                  Chip(
+                    padding: EdgeInsets.all(0),
+                    backgroundColor: Colors.black,
+                    label: Text(
+                      '${widget.tommy.uid}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                        child: Text(
+                          '${widget.tommy.name}',
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                              color: textColor,
+                              fontSize: 25,
+                              fontStyle: FontStyle.italic),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Last Watered on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.lastWatered)}',
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                                color: textColor,
+                                fontSize: 15,
+                                fontStyle: FontStyle.normal),
+                          ),
+                          Text(
+                            'Next check due on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.nextWater)}',
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                                color: textColor,
+                                fontSize: 15,
+                                fontStyle: FontStyle.normal),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
           ),
           subtitle: Column(
             children: <Widget>[
@@ -99,18 +169,22 @@ class _PlantCardState extends State<PlantCard> {
                       },
                     ),
                   ),
-                  Expanded(
-                    child: IconButton(
-                      iconSize: 45,
-                      icon: FaIcon(FontAwesomeIcons.eraser, color: textColor),
-                      onPressed: () {
-                        setState(() {
-                          plantList.plantList[widget.index].checkStatus = 0;
-                          saveDisk(plantList);
-                        });
-                      },
-                    ),
-                  ),
+                  widget.allowDelete
+                      ? FlatButton(
+                          onLongPress: () {
+                            plantList.plantList.removeAt(widget.index);
+                            print('attempt remove');
+                            widget.notifyParent();
+                          },
+                          onPressed: () {},
+                          child: IconButton(
+                            iconSize: 45,
+                            icon: FaIcon(FontAwesomeIcons.trash,
+                                color: textColor),
+                            onPressed: () {},
+                          ),
+                        )
+                      : Container(),
                 ],
               ))
             ],

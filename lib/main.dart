@@ -15,6 +15,7 @@ import 'dart:developer';
 PlantCollection plantList;
 Random rng = new Random();
 bool _showAll = false;
+bool _allowDelete = false;
 
 void main() {
   runApp(Home(
@@ -81,6 +82,21 @@ class _HomeState extends State<Home> {
         appBar: AppBar(
           title: Text(widget.title),
           actions: [
+            FlatButton(
+              padding: EdgeInsets.all(0),
+              onLongPress: () {
+                setState(() {
+                  _allowDelete ^= true;
+                });
+              },
+              onPressed: () {},
+              child: IconButton(
+                  color: _allowDelete ? Colors.red : Colors.green,
+                  icon: _allowDelete
+                      ? FaIcon(FontAwesomeIcons.trash)
+                      : FaIcon(FontAwesomeIcons.trash),
+                  onPressed: () {}),
+            ),
             IconButton(
                 icon: _showAll
                     ? FaIcon(FontAwesomeIcons.eye)
@@ -105,12 +121,14 @@ class _HomeState extends State<Home> {
                     ? Column(children: [
                         InkWell(
                           child: PlantCard(
-                              tommy: plantList.plantList[index], index: index),
-                          onTap: () {
-                            print(plantList.plantList.removeAt(index));
-                            print('attempt remove');
-                            setState(() {});
-                          },
+                            tommy: plantList.plantList[index],
+                            index: index,
+                            allowDelete: _allowDelete,
+                            notifyParent: () {
+                              setState(() {});
+                            },
+                          ),
+                          onTap: () {},
                         ),
                       ])
                     : Center();
@@ -118,13 +136,14 @@ class _HomeState extends State<Home> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            //saveDisk(plantList);
             print('this button works');
             plantList.actionChanges();
+            saveDisk(plantList);
+
             setState(() {});
           },
           backgroundColor: Colors.green[400],
-          tooltip: 'Save Progress',
+          tooltip: 'Action all changes and save.',
           child: FaIcon(FontAwesomeIcons.checkSquare),
         ),
       ),

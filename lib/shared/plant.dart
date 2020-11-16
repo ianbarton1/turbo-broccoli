@@ -9,11 +9,14 @@ class Plant {
   DateTime previousWater;
   DateTime lastWatered;
   DateTime nextWater;
+  DateTime activeWatered;
   int dbw;
   double multiplier;
   int section;
   int zone;
   int checkStatus = 0;
+  int dbw_low;
+  int dbw_high;
 
   Plant(
       {this.uid,
@@ -25,12 +28,14 @@ class Plant {
       this.multiplier,
       this.section,
       this.zone,
-      this.checkStatus});
+      this.checkStatus,
+      this.activeWatered});
 
   void waterPlant() {
-    previousWater = lastWatered;
+    previousWater = activeWatered;
+    activeWatered = nextWater;
     lastWatered = DateTime.now();
-    dbw = max(1, lastWatered.difference(previousWater).inDays);
+    dbw = max(1, activeWatered.difference(previousWater).inDays);
     multiplier = 0.75;
     nextWater = suggestedWaterDate();
     checkStatus = 0;
@@ -40,8 +45,9 @@ class Plant {
     DateTime nextWaterBefore = nextWater;
     multiplier += 0.25;
     nextWater = suggestedWaterDate();
-    if (nextWater.isSameDay(nextWaterBefore))
-      nextWater = nextWater.add(Duration(days: 1));
+    if (nextWater.isSameDay(nextWaterBefore) ||
+        nextWater.isBefore(nextWaterBefore))
+      nextWater = nextWaterBefore.add(Duration(days: 1));
     checkStatus = 0;
   }
 
@@ -61,6 +67,9 @@ class Plant {
             : null,
         'previousWater': previousWater != null
             ? DateFormat('yyyy-MM-dd').format(previousWater)
+            : null,
+        'activeWatered': activeWatered != null
+            ? DateFormat('yyyy-MM-dd').format(activeWatered)
             : null,
         'dbw': dbw,
         'multiplier': multiplier,

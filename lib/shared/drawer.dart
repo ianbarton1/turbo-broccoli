@@ -32,11 +32,6 @@ class _MainMenuState extends State<MainMenu> {
                           });
                         }),
                     ListTile(
-                      leading: Icon(Icons.delete),
-                      title: Text('Remove a Plant'),
-                      //onTap: () => Navigator.pushNamed(context, '/home'),
-                    ),
-                    ListTile(
                       leading: Icon(Icons.search_sharp),
                       title: Text('Plant Query'),
                       // onTap: () => {},
