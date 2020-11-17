@@ -15,8 +15,9 @@ class Plant {
   int section;
   int zone;
   int checkStatus = 0;
-  int dbw_low;
-  int dbw_high;
+  int dbwLow;
+  int dbwHigh;
+  String homeZone;
 
   Plant(
       {this.uid,
@@ -29,7 +30,8 @@ class Plant {
       this.section,
       this.zone,
       this.checkStatus,
-      this.activeWatered});
+      this.activeWatered,
+      this.homeZone});
 
   void waterPlant() {
     previousWater = activeWatered;
@@ -76,5 +78,6 @@ class Plant {
         'checkStatus': checkStatus,
         'section': section,
         'zone': zone,
+        'homeZone': homeZone,
       };
 }

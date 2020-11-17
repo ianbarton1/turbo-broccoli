@@ -118,6 +118,14 @@ class _PlantCardState extends State<PlantCard> {
                                 fontSize: 15,
                                 fontStyle: FontStyle.normal),
                           ),
+                          Text(
+                            'Home Zone: ${widget.tommy.homeZone}',
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                                color: textColor,
+                                fontSize: 15,
+                                fontStyle: FontStyle.normal),
+                          ),
                         ],
                       ),
                     ),
@@ -142,7 +150,7 @@ class _PlantCardState extends State<PlantCard> {
                               plantList.plantList[widget.index].checkStatus == 2
                                   ? 0
                                   : 2;
-                          saveDisk(plantList);
+                          saveDisk(plantList, zoneList);
                         });
                       },
                     ),
@@ -164,7 +172,7 @@ class _PlantCardState extends State<PlantCard> {
                               plantList.plantList[widget.index].checkStatus == 1
                                   ? 0
                                   : 1;
-                          saveDisk(plantList);
+                          saveDisk(plantList, zoneList);
                         });
                       },
                     ),

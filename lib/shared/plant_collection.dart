@@ -1,9 +1,17 @@
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class PlantCollection {
   List<Plant> plantList = List();
 
   PlantCollection();
+
+  void reindexZones(List<String> zoneList) {
+    print('reindexing zones');
+    plantList.forEach((element) {
+      element.section = zoneList.indexOf(element.homeZone);
+    });
+  }
 
   void orderCollection() {
     plantList.sort((a, b) {

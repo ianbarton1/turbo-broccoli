@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
+import 'package:turbo_broccoli/pages/zone_manager.dart';
 import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
@@ -12,7 +13,10 @@ import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'dart:developer';
 
+import 'package:turbo_broccoli/shared/zone_map.dart';
+
 PlantCollection plantList;
+ZoneMap zoneList;
 Random rng = new Random();
 bool _showAll = false;
 bool _allowDelete = false;
@@ -44,7 +48,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   void populateList() async {
     plantList = await fromDisk();
+    zoneList = await loadZones();
     if (plantList == null) plantList = new PlantCollection();
+    if (zoneList == null) zoneList = new ZoneMap();
     setState(() {});
   }
 
@@ -68,7 +74,8 @@ class _HomeState extends State<Home> {
         '/home': (context) => Home(
               title: 'Turbo Broccoli',
             ),
-        '/add_new': (context) => NewPlant()
+        '/add_new': (context) => NewPlant(),
+        '/zone_manager': (context) => ZoneManager(),
       },
       title: 'Turbo Broccoli',
       theme: ThemeData(
@@ -112,33 +119,52 @@ class _HomeState extends State<Home> {
           child: MainMenu(),
         ),
         body: Center(
-          child: ListView.builder(
-              itemCount: plantList != null
-                  ? min(plantList.plantList.length, liveCount)
-                  : 0,
-              itemBuilder: (context, index) {
-                return plantList != null
-                    ? Column(children: [
-                        InkWell(
-                          child: PlantCard(
-                            tommy: plantList.plantList[index],
-                            index: index,
-                            allowDelete: _allowDelete,
-                            notifyParent: () {
-                              setState(() {});
-                            },
-                          ),
-                          onTap: () {},
+            child: liveCount > 0
+                ? ListView.builder(
+                    itemCount: plantList != null
+                        ? min(plantList.plantList.length, liveCount)
+                        : 0,
+                    itemBuilder: (context, index) {
+                      return plantList != null
+                          ? Column(children: [
+                              InkWell(
+                                child: PlantCard(
+                                  tommy: plantList.plantList[index],
+                                  index: index,
+                                  allowDelete: _allowDelete,
+                                  notifyParent: () {
+                                    setState(() {});
+                                  },
+                                ),
+                                onTap: () {},
+                              ),
+                            ])
+                          : Center();
+                    })
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.leaf,
+                        size: 150,
+                        color: Colors.lightGreen,
+                      ),
+                      SizedBox(height: 50),
+                      Text(
+                        'Happy Plants!',
+                        style: TextStyle(
+                          fontSize: 30,
+                          color: Colors.lightGreen,
                         ),
-                      ])
-                    : Center();
-              }),
-        ),
+                        overflow: TextOverflow.visible,
+                      )
+                    ],
+                  )),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             print('this button works');
             plantList.actionChanges();
-            saveDisk(plantList);
+            saveDisk(plantList, zoneList);
 
             setState(() {});
           },

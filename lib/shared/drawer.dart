@@ -32,6 +32,14 @@ class _MainMenuState extends State<MainMenu> {
                           });
                         }),
                     ListTile(
+                        leading: Icon(Icons.list_alt),
+                        title: Text('Section Manager'),
+                        onTap: () {
+                          setState(() {
+                            Navigator.popAndPushNamed(context, '/zone_manager');
+                          });
+                        }),
+                    ListTile(
                       leading: Icon(Icons.search_sharp),
                       title: Text('Plant Query'),
                       // onTap: () => {},
