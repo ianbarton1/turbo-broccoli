@@ -47,6 +47,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   void populateList() async {
+    SharedPreferences debug = await SharedPreferences.getInstance();
+    await debug.clear();
     plantList = await fromDisk();
     zoneList = await loadZones();
     if (plantList == null) plantList = new PlantCollection();
