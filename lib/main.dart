@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:turbo_broccoli/pages/backup.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/pages/zone_manager.dart';
 import 'package:turbo_broccoli/shared/card.dart';
@@ -47,8 +48,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   void populateList() async {
-    SharedPreferences debug = await SharedPreferences.getInstance();
-    await debug.clear();
+    // SharedPreferences debug = await SharedPreferences.getInstance();
+    // await debug.clear();
     plantList = await fromDisk();
     zoneList = await loadZones();
     if (plantList == null) plantList = new PlantCollection();
@@ -78,6 +79,11 @@ class _HomeState extends State<Home> {
             ),
         '/add_new': (context) => NewPlant(),
         '/zone_manager': (context) => ZoneManager(),
+        '/backup_manager': (context) => BackupManager(
+              notifyParent: () {
+                setState(() {});
+              },
+            ),
       },
       title: 'Turbo Broccoli',
       theme: ThemeData(

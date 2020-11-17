@@ -44,6 +44,10 @@ Future<ZoneMap> loadZones() async {
 
 Future<PlantCollection> fromDisk() async {
   List<dynamic> temp = await loadDisk();
+  return jsonToCollection(temp);
+}
+
+PlantCollection jsonToCollection(List<dynamic> temp) {
   PlantCollection result = new PlantCollection();
   temp.forEach((e) {
     result.addNew(new Plant(

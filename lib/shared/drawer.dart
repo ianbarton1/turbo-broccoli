@@ -39,23 +39,32 @@ class _MainMenuState extends State<MainMenu> {
                             Navigator.popAndPushNamed(context, '/zone_manager');
                           });
                         }),
+                    // ListTile(
+                    //   leading: Icon(Icons.search_sharp),
+                    //   title: Text('Plant Query'),
+                    //   // onTap: () => {},
+                    // ),
                     ListTile(
-                      leading: Icon(Icons.search_sharp),
-                      title: Text('Plant Query'),
-                      // onTap: () => {},
+                      leading: Icon(Icons.backup),
+                      title: Text('Backup/Restore Data'),
+                      onTap: () {
+                        setState(() {
+                          Navigator.popAndPushNamed(context, '/backup_manager');
+                        });
+                      },
                     ),
-                    ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text('Settings'),
-                      //onTap: () {},
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.exit_to_app),
-                      title: Text('Finish and Save Data'),
-                      //onTap: () {
-                      // Navigator.pushReplacementNamed(context, '/login');
-                      //},
-                    ),
+                    // ListTile(
+                    //   leading: Icon(Icons.settings),
+                    //   title: Text('Settings'),
+                    //   //onTap: () {},
+                    // ),
+                    // ListTile(
+                    //   leading: Icon(Icons.exit_to_app),
+                    //   title: Text('Finish and Save Data'),
+                    //   //onTap: () {
+                    //   // Navigator.pushReplacementNamed(context, '/login');
+                    //   //},
+                    // ),
                   ],
                 ),
               ),
