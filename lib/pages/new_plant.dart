@@ -196,6 +196,7 @@ class _NewPlantState extends State<NewPlant> {
                                 .nextWater =
                             plantList.plantList[plantList.plantList.length - 1]
                                 .suggestedWaterDate();
+                        plantList.reindexZones(zoneList.zoneList);
                         saveDisk(plantList, zoneList);
                         Navigator.of(context)
                             .popUntil((route) => route.isFirst);
