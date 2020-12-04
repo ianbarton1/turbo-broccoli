@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:dart_date/dart_date.dart';
@@ -6,17 +7,28 @@ import 'package:dart_date/dart_date.dart';
 class Plant {
   int uid;
   String name;
+  //previousWater holds the date that the plant was last previously watered
   DateTime previousWater;
+  //holds the actual date that a plant was watered
   DateTime lastWatered;
+  //holds when the plant would ideally be watered or checked next
   DateTime nextWater;
+  //holds when a plant should have been watered regardless of whether that's the actual date
   DateTime activeWatered;
+  //holds when a plant will be checked next after load balancing has been applied
+  DateTime scheduleDate;
+  //a delayFactor that will be applied between a DateRange DDMM-DDMM
+  double delayFactor;
+  //holds the range that the delayFactor will be applied between
+  DateTimeRange delayPeriod;
+
   int dbw;
   double multiplier;
   int section;
   int zone;
   int checkStatus = 0;
-  int dbwLow;
-  int dbwHigh;
+  int dbwLow = 1;
+  int dbwHigh = 100;
   String homeZone;
 
   Plant(
@@ -31,13 +43,19 @@ class Plant {
       this.zone,
       this.checkStatus,
       this.activeWatered,
-      this.homeZone});
+      this.homeZone,
+      this.dbwLow,
+      this.dbwHigh}) {
+    if (this.dbwLow == null) this.dbwLow = 1;
+    if (this.dbwHigh == null) this.dbwHigh = 100;
+  }
 
   void waterPlant() {
     previousWater = activeWatered;
     activeWatered = nextWater;
     lastWatered = DateTime.now();
-    dbw = max(1, activeWatered.difference(previousWater).inDays);
+    dbw = min(
+        max(dbwLow, activeWatered.difference(previousWater).inDays), dbwHigh);
     multiplier = 0.75;
     nextWater = suggestedWaterDate();
     checkStatus = 0;
@@ -79,5 +97,7 @@ class Plant {
         'section': section,
         'zone': zone,
         'homeZone': homeZone,
+        'dbwLow': dbwLow,
+        'dbwHigh': dbwHigh,
       };
 }

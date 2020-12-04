@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
 import 'package:turbo_broccoli/main.dart';
@@ -7,19 +8,47 @@ import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 
 class NewPlant extends StatefulWidget {
+  bool editMode = false;
+  Plant plant;
+  NewPlant({this.plant}) {
+    if (plant != null) editMode = true;
+  }
+
   @override
-  _NewPlantState createState() => _NewPlantState();
+  _NewPlantState createState() => _NewPlantState(editMode, plant);
 }
 
 class _NewPlantState extends State<NewPlant> {
-  final _formKey = GlobalKey<FormState>();
+  bool editMode;
 
+  bool uidCheck = true;
+  Plant tempPlant;
+  _NewPlantState(this.editMode, this.tempPlant) {
+    // if (widget.plant != null) tempPlant = widget.plant;
+    if (editMode == true) {
+      uidController.text = tempPlant.uid.toString();
+      nameController.text = tempPlant.name;
+      lastWateredPicker = tempPlant.lastWatered;
+      previousWateredPicker = tempPlant.previousWater;
+      _rangeValues = RangeValues(
+          tempPlant.dbwLow.toDouble(), tempPlant.dbwHigh.toDouble());
+      newHomeZone = tempPlant.homeZone;
+      if (!zoneList.zoneList.contains(tempPlant.homeZone))
+        zoneList.zoneList.add(tempPlant.homeZone);
+    } else {
+      uidController.text = plantList.freeID().toString();
+    }
+  }
+
+  final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
-  final uidController =
-      TextEditingController(text: plantList.freeID().toString());
+  final uidController = TextEditingController();
   final sectionController = TextEditingController(text: '0');
   final zoneController = TextEditingController(text: '0');
+  final dbwLowController = TextEditingController(text: '0');
+  final dbwHighController = TextEditingController(text: '365');
   String newHomeZone;
+  RangeValues _rangeValues = new RangeValues(1, 100);
 
   DateTime temp;
   DateTime lastWateredPicker = DateTime.now();
@@ -32,6 +61,8 @@ class _NewPlantState extends State<NewPlant> {
     uidController.dispose();
     sectionController.dispose();
     zoneController.dispose();
+    dbwHighController.dispose();
+    dbwLowController.dispose();
     super.dispose();
   }
 
@@ -40,7 +71,7 @@ class _NewPlantState extends State<NewPlant> {
     return Scaffold(
       // resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Add New Plant'),
+        title: widget.editMode ? Text('Edit Plant ') : Text('Add New Plant'),
         // actions: [FlatButton(onPressed: () {}, child: Text('Save'))],
       ),
       body: Center(
@@ -48,164 +79,229 @@ class _NewPlantState extends State<NewPlant> {
         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                      helperText: 'An unique identifier (auto-populated)',
-                      labelText: 'UID'),
-                  validator: (value) {
-                    if (value.isEmpty) return 'Enter an UID';
-                    return null;
-                  },
-                  controller: uidController,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                      helperText: 'A quick description of the plant',
-                      labelText: 'Name'),
-                  validator: (value) {
-                    if (value.isEmpty) return 'Enter a name';
-                    return null;
-                  },
-                  controller: nameController,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Last Watered: ${DateFormat('yyyy-MM-dd').format(lastWateredPicker)}',
-                        style: TextStyle(fontSize: 17),
-                      ),
-                    ),
-                    RaisedButton(
-                      onPressed: () {
-                        showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2001),
-                                lastDate: DateTime(2025))
-                            .then((date) {
-                          setState(() {
-                            if (date != null) lastWateredPicker = date;
-                          });
-                        });
-                      },
-                      child: Icon(Icons.calendar_today_outlined),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Previously Watered: ${DateFormat('yyyy-MM-dd').format(previousWateredPicker)}',
-                        style: TextStyle(fontSize: 17),
-                      ),
-                    ),
-                    RaisedButton(
-                      onPressed: () {
-                        showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2001),
-                                lastDate: DateTime(2025))
-                            .then((date) {
-                          setState(() {
-                            if (date != null) previousWateredPicker = date;
-                          });
-                        });
-                      },
-                      child: Icon(Icons.calendar_today_outlined),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: Text(
-                      'Home Zone:',
-                      style: TextStyle(fontSize: 18),
-                    )),
-                    DropdownButton<String>(
-                      value: newHomeZone,
-                      items: zoneList.zoneList.map((String value) {
-                        return new DropdownMenuItem<String>(
-                          value: value,
-                          child: new Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          newHomeZone = newValue;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // TextFormField(
-              //   keyboardType: TextInputType.number,
-              //   decoration: InputDecoration(
-              //       helperText:
-              //           'A zone number helps to plan your watering walk.',
-              //       labelText: 'Routing Zone Number'),
-              //   validator: (value) {
-              //     if (value.isEmpty) return 'Enter a zone number';
-              //     return null;
-              //   },
-              //   controller: zoneController,
-              // ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        plantList.addNew(new Plant(
-                          uid: int.parse(uidController.text),
-                          name: nameController.text,
-                          previousWater: previousWateredPicker,
-                          lastWatered: lastWateredPicker,
-                          activeWatered: lastWateredPicker,
-                          dbw: lastWateredPicker
-                              .difference(previousWateredPicker)
-                              .inDays,
-                          multiplier: 0.75,
-                          section: 0,
-                          zone: 0,
-                          nextWater: DateTime(2020, 11, 15),
-                          checkStatus: 0,
-                          homeZone: newHomeZone,
-                        ));
-                        plantList.plantList[plantList.plantList.length - 1]
-                                .nextWater =
-                            plantList.plantList[plantList.plantList.length - 1]
-                                .suggestedWaterDate();
-                        plantList.reindexZones(zoneList.zoneList);
-                        saveDisk(plantList, zoneList);
-                        Navigator.of(context)
-                            .popUntil((route) => route.isFirst);
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        helperText: 'An unique identifier (auto-populated)',
+                        labelText: 'UID',
+                        suffix: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: uidCheck
+                              ? FaIcon(FontAwesomeIcons.check,
+                                  size: 20, color: Colors.green)
+                              : FaIcon(
+                                  FontAwesomeIcons.exclamationTriangle,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                        )),
+                    validator: (value) {
+                      if (value.isEmpty) return 'Enter an UID';
+                      if (plantList.idCheck(int.parse(value)) &&
+                          editMode == false)
+                        return 'This UID is already in use.';
+                      return null;
                     },
-                    child: Text('Add Plant')),
-              )
-            ],
+                    onChanged: (value) {
+                      setState(() {
+                        uidCheck = !plantList.idCheck(int.parse(value));
+                      });
+                    },
+                    controller: uidController,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                        helperText: 'A quick description of the plant',
+                        labelText: 'Name'),
+                    validator: (value) {
+                      if (value.isEmpty) return 'Enter a name';
+                      return null;
+                    },
+                    controller: nameController,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Last Watered: ${DateFormat('yyyy-MM-dd').format(lastWateredPicker)}',
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      RaisedButton(
+                        onPressed: () {
+                          showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2001),
+                                  lastDate: DateTime(2025))
+                              .then((date) {
+                            setState(() {
+                              if (date != null) lastWateredPicker = date;
+                            });
+                          });
+                        },
+                        child: Icon(Icons.calendar_today_outlined),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Previously Watered: ${DateFormat('yyyy-MM-dd').format(previousWateredPicker)}',
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      RaisedButton(
+                        onPressed: () {
+                          showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2001),
+                                  lastDate: DateTime(2025))
+                              .then((date) {
+                            setState(() {
+                              if (date != null) previousWateredPicker = date;
+                            });
+                          });
+                        },
+                        child: Icon(Icons.calendar_today_outlined),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                        'Home Zone:',
+                        style: TextStyle(fontSize: 18),
+                      )),
+                      DropdownButton<String>(
+                        value: newHomeZone,
+                        items: zoneList.zoneList.map((String value) {
+                          return new DropdownMenuItem<String>(
+                            value: value,
+                            child: new Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            newHomeZone = newValue;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Acceptable Water Cycle Duration',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        Text(
+                          '${_rangeValues.start.round().toString()} to ${_rangeValues.end.round().toString()} days',
+                          style: TextStyle(
+                              fontSize: 17, fontStyle: FontStyle.italic),
+                        ),
+                        RangeSlider(
+                          values: _rangeValues,
+                          min: 1,
+                          max: 100,
+                          divisions: 20,
+                          labels: RangeLabels(
+                              _rangeValues.start.round().toString(),
+                              _rangeValues.end.round().toString()),
+                          onChanged: (RangeValues values) {
+                            setState(() {
+                              _rangeValues = values;
+                            });
+                          },
+                        ),
+                      ],
+                    )),
+                // TextFormField(
+                //   keyboardType: TextInputType.number,
+                //   decoration: InputDecoration(
+                //       helperText:
+                //           'A zone number helps to plan your watering walk.',
+                //       labelText: 'Routing Zone Number'),
+                //   validator: (value) {
+                //     if (value.isEmpty) return 'Enter a zone number';
+                //     return null;
+                //   },
+                //   controller: zoneController,
+                // ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          if (editMode != true) {
+                            plantList.addNew(new Plant(
+                              uid: int.parse(uidController.text),
+                              name: nameController.text,
+                              previousWater: previousWateredPicker,
+                              lastWatered: lastWateredPicker,
+                              activeWatered: lastWateredPicker,
+                              dbw: lastWateredPicker
+                                  .difference(previousWateredPicker)
+                                  .inDays,
+                              multiplier: 0.75,
+                              section: 0,
+                              zone: 0,
+                              nextWater: DateTime(2020, 11, 15),
+                              checkStatus: 0,
+                              homeZone: newHomeZone,
+                              dbwLow: _rangeValues.start.round(),
+                              dbwHigh: _rangeValues.end.round(),
+                            ));
+                          } else {
+                            tempPlant.name = nameController.text;
+                            tempPlant.uid = int.parse(uidController.text);
+                            tempPlant.previousWater = previousWateredPicker;
+                            tempPlant.lastWatered = lastWateredPicker;
+                            tempPlant.dbwLow = _rangeValues.start.round();
+                            tempPlant.dbwHigh = _rangeValues.end.round();
+                            tempPlant.homeZone = newHomeZone;
+                          }
+                          //common to both edit and new plant
+                          plantList.plantList[plantList.plantList.length - 1]
+                                  .nextWater =
+                              plantList
+                                  .plantList[plantList.plantList.length - 1]
+                                  .suggestedWaterDate();
+                          plantList.reindexZones(zoneList.zoneList);
+                          saveDisk(plantList, zoneList);
+                          Navigator.of(context)
+                              .popUntil((route) => route.isFirst);
+                          Navigator.pushReplacementNamed(context, '/home');
+                        }
+                      },
+                      child:
+                          editMode ? Text('Save Changes') : Text('Add Plant')),
+                )
+              ],
+            ),
           ),
         ),
       )),

@@ -63,6 +63,8 @@ PlantCollection jsonToCollection(List<dynamic> temp) {
       zone: e['zone'],
       activeWatered: DateTime.parse(e['activeWatered']),
       homeZone: e['homeZone'],
+      dbwHigh: e['dbwHigh'],
+      dbwLow: e['dbwLow'],
     ));
   });
 

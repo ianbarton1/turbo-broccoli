@@ -95,16 +95,14 @@ class _HomeState extends State<Home> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Text("Turbo Broccoli ($liveCount)"),
           actions: [
-            FlatButton(
-              padding: EdgeInsets.all(0),
+            InkWell(
               onLongPress: () {
                 setState(() {
                   _allowDelete ^= true;
                 });
               },
-              onPressed: () {},
               child: IconButton(
                   color: _allowDelete ? Colors.red : Colors.green,
                   icon: _allowDelete

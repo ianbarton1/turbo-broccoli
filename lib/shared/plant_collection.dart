@@ -24,11 +24,17 @@ class PlantCollection {
   }
 
   int liveCount() {
+    int result = dayCount(DateTime.now());
+    print('liveCount= $result');
+    return result;
+  }
+
+  int dayCount(DateTime selectedDate) {
     int result = 0;
     plantList.forEach((element) {
-      if (!element.nextWater.isAfter(DateTime.now())) result++;
+      if (!element.nextWater.isAfter(selectedDate)) result++;
     });
-    print('liveCount= $result');
+    print('dayCount= $result');
     return result;
   }
 
