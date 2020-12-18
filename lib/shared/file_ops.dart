@@ -3,16 +3,21 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
+import 'package:turbo_broccoli/shared/sample.dart';
+import 'package:turbo_broccoli/shared/sample_map.dart';
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
 //PlantCollection loadData;
-void saveDisk(PlantCollection saveData, ZoneMap saveZone) async {
+void saveDisk(
+    PlantCollection saveData, ZoneMap saveZone, SampleMap saveSamples) async {
   SharedPreferences plants = await SharedPreferences.getInstance();
   plants.setString('plants', jsonEncode(saveData.toJson()));
   print('savedisk');
   print(jsonEncode(saveData.toJson()));
   plants.setString('zones', jsonEncode(saveZone.zoneList));
   print(jsonEncode(saveZone.zoneList));
+  plants.setString('samples', jsonEncode(saveSamples.toJson()));
+  print(jsonEncode(saveSamples.toJson()));
 }
 
 Future<List<dynamic>> loadDisk() async {
@@ -42,6 +47,37 @@ Future<ZoneMap> loadZones() async {
   return loadedZoneMap;
 }
 
+//get sample data from disk (the raw data not in object form)
+Future<List<dynamic>> loadSamples() async {
+  SharedPreferences plants = await SharedPreferences.getInstance();
+  List<dynamic> loadData;
+  if (!plants.containsKey('samples')) {
+    plants.setString('samples', '[]');
+  }
+  // loadData = jsonDecode(plants.get('zones'));
+  loadData = jsonDecode(plants.get('samples')) as List<dynamic>;
+
+  return loadData;
+}
+
+SampleMap jsonToSampleMap(List<dynamic> temp) {
+  SampleMap result = new SampleMap();
+  temp.forEach((e) {
+    result.addNew(new Sample(
+      maxWeight: e['maxWeight'],
+      lastChecked: DateTime.parse(e['lastChecked']),
+      sampleID: e['sampleID'],
+    ));
+  });
+
+  return result;
+}
+
+Future<SampleMap> sampleFromDisk() async {
+  List<dynamic> temp = await loadSamples();
+  return jsonToSampleMap(temp);
+}
+
 Future<PlantCollection> fromDisk() async {
   List<dynamic> temp = await loadDisk();
   return jsonToCollection(temp);
@@ -65,6 +101,15 @@ PlantCollection jsonToCollection(List<dynamic> temp) {
       homeZone: e['homeZone'],
       dbwHigh: e['dbwHigh'],
       dbwLow: e['dbwLow'],
+      waterMode: e['waterMode'],
+      delayFactor: e['delayFactor'],
+      isDelayed: e['isDelayed'],
+      currentActivitySampleCount: e['currentActivitySampleCount'],
+      currentActivitySum: e['currentActivitySum'],
+      isPlantDynamic: e['isPlantDynamic'],
+      lastActivitySampleCount: e['lastActivitySampleCount'],
+      lastActivitySum: e['lastActivitySum'],
+      sampleID: e['sampleID'],
     ));
   });
 

@@ -4,14 +4,20 @@ import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:flutter/material.dart';
 
-class PlantInfo extends StatelessWidget {
+class PlantInfo extends StatefulWidget {
   final Plant plant;
-  PlantInfo({this.plant}) {}
+  PlantInfo({this.plant});
+
+  @override
+  _PlantInfoState createState() => _PlantInfoState();
+}
+
+class _PlantInfoState extends State<PlantInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('${plant.uid} - ${plant.name}'),
+          title: Text('${widget.plant.uid} - ${widget.plant.name}'),
           actions: [
             IconButton(
                 icon: FaIcon(FontAwesomeIcons.edit),
@@ -20,7 +26,12 @@ class PlantInfo extends StatelessWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => NewPlant(plant: plant)));
+                          builder: (context) => NewPlant(
+                                plant: widget.plant,
+                                notifyParent: () {
+                                  setState(() {});
+                                },
+                              )));
                 }),
           ],
         ),
@@ -29,39 +40,79 @@ class PlantInfo extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                'Name: ${plant.name}',
+                'Name: ${widget.plant.name}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Location (Home Zone): ${plant.homeZone}',
+                'Location (Home Zone): ${widget.plant.homeZone}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Cycle Length (Days Between Watering): ${plant.dbw}',
+                'Cycle Length (Days Between Watering): ${widget.plant.dbw}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Minimum Cycle Length: ${plant.dbwLow}',
+                'Minimum Cycle Length: ${widget.plant.dbwLow}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Maximum Cycle Length: ${plant.dbwHigh}',
+                'Maximum Cycle Length: ${widget.plant.dbwHigh}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Previously Watered on: ${DateFormat('yyyy-MM-dd').format(plant.previousWater)}',
+                'Previously Watered on: ${DateFormat('yyyy-MM-dd').format(widget.plant.previousWater)}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Last Watered on: ${DateFormat('yyyy-MM-dd').format(plant.lastWatered)}',
+                'Last Watered on: ${DateFormat('yyyy-MM-dd').format(widget.plant.lastWatered)}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Current Multiplier: ${plant.multiplier}',
+                'Current Multiplier: ${widget.plant.multiplier}',
                 style: TextStyle(fontSize: 20),
               ),
               Text(
-                'Next Check on: ${DateFormat('yyyy-MM-dd').format(plant.nextWater)}',
+                'Next Check on: ${DateFormat('yyyy-MM-dd').format(widget.plant.nextWater)}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Current Check Mode: ${widget.plant.waterMode}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Is this plant Dynamic? ${widget.plant.isPlantDynamic}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Last Cycle Activity Total ${widget.plant.lastActivitySum}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Last Cycle Activity Sample ${widget.plant.lastActivitySampleCount}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Last Cycle Activity Total ${widget.plant.currentActivitySum}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Last Cycle Activity Sample ${widget.plant.currentActivitySampleCount}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Dynamic Multiplier ${widget.plant.dynamicMultiplier()}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'NeedsUpdate? ${widget.plant.needsUpdate()}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Dynamically Calculated Date? ${widget.plant.suggestedWaterDate()}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                'SampleID? ${widget.plant.sampleID}',
                 style: TextStyle(fontSize: 20),
               ),
             ],

@@ -9,6 +9,7 @@ import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class BackupManager extends StatefulWidget {
   final Function() notifyParent;
@@ -21,6 +22,7 @@ class BackupManager extends StatefulWidget {
 
 class _BackupManagerState extends State<BackupManager> {
   TextEditingController plantsBackup;
+  String backupMode = 'Plants';
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -30,7 +32,19 @@ class _BackupManagerState extends State<BackupManager> {
 
   @override
   Widget build(BuildContext context) {
-    String backupData = jsonEncode(plantList.toJson());
+    String backupData;
+    switch (backupMode) {
+      case ('Plants'):
+        backupData = jsonEncode(plantList.toJson());
+        break;
+      case ('Zones'):
+        backupData = jsonEncode(zoneList.zoneList);
+        break;
+      case ('Samples'):
+        backupData = jsonEncode(sampleList.toJson());
+        break;
+    }
+
     List<dynamic> tempData;
     plantsBackup = TextEditingController(text: backupData);
     return Scaffold(
@@ -43,7 +57,17 @@ class _BackupManagerState extends State<BackupManager> {
                     setState(() {
                       widget.notifyParent();
                       tempData = jsonDecode(plantsBackup.text);
-                      plantList = jsonToCollection(tempData);
+                      switch (backupMode) {
+                        case ('Plants'):
+                          plantList = jsonToCollection(tempData);
+                          break;
+                        case ('Zones'):
+                          zoneList.zoneList = tempData.cast<String>().toList();
+                          break;
+                        case ('Samples'):
+                          sampleList = jsonToSampleMap(tempData);
+                          break;
+                      }
 
                       Scaffold.of(context).showSnackBar(
                           SnackBar(content: Text('Restored Data')));
@@ -56,6 +80,18 @@ class _BackupManagerState extends State<BackupManager> {
         body: Center(
           child: Column(
             children: [
+              DropdownButton(
+                  value: backupMode,
+                  items: [
+                    DropdownMenuItem(value: 'Plants', child: Text('Plants')),
+                    DropdownMenuItem(value: 'Zones', child: Text('Zones')),
+                    DropdownMenuItem(value: 'Samples', child: Text('Samples'))
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      backupMode = value;
+                    });
+                  }),
               Expanded(
                   child: Container(
                       child: TextFormField(

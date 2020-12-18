@@ -6,21 +6,23 @@ import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/sample.dart';
 
-class ZoneManager extends StatefulWidget {
+class SampleManager extends StatefulWidget {
   final Function() notifyParent;
 
-  ZoneManager({this.notifyParent});
-
+  SampleManager({this.notifyParent});
   @override
-  _ZoneManagerState createState() => _ZoneManagerState();
+  _SampleManagerState createState() => _SampleManagerState();
 }
 
-class _ZoneManagerState extends State<ZoneManager> {
-  TextEditingController newZoneName = TextEditingController();
+class _SampleManagerState extends State<SampleManager> {
+  TextEditingController newSampleName = TextEditingController();
+  TextEditingController newSampleMaxWeight = TextEditingController();
 
   _displayDialog() {
-    newZoneName.clear();
+    newSampleName.clear();
+    newSampleMaxWeight.clear();
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -36,7 +38,7 @@ class _ZoneManagerState extends State<ZoneManager> {
   }
 
   Widget _DialogWithTextField(BuildContext context) => Container(
-        height: 210,
+        height: 310,
         decoration: BoxDecoration(
           color: Colors.green[900],
           shape: BoxShape.rectangle,
@@ -46,7 +48,7 @@ class _ZoneManagerState extends State<ZoneManager> {
           children: <Widget>[
             SizedBox(height: 24),
             Text(
-              "Add New Zone",
+              "Add New Sample",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey,
@@ -59,12 +61,28 @@ class _ZoneManagerState extends State<ZoneManager> {
                 padding:
                     EdgeInsets.only(top: 10, bottom: 10, right: 15, left: 15),
                 child: TextFormField(
-                  controller: newZoneName,
+                  controller: newSampleName,
                   maxLines: 1,
                   autofocus: false,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    labelText: 'Zone Name',
+                    labelText: 'Sample Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                  ),
+                )),
+            SizedBox(height: 10),
+            Padding(
+                padding:
+                    EdgeInsets.only(top: 10, bottom: 10, right: 15, left: 15),
+                child: TextFormField(
+                  controller: newSampleMaxWeight,
+                  maxLines: 1,
+                  autofocus: false,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Starting Weight for Sample',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -96,7 +114,11 @@ class _ZoneManagerState extends State<ZoneManager> {
                   ),
                   onPressed: () {
                     setState(() {
-                      zoneList.zoneList.add(newZoneName.text);
+                      sampleList.addNew(new Sample(
+                        sampleID: newSampleName.text,
+                        maxWeight: int.parse(newSampleMaxWeight.text),
+                        lastChecked: DateTime.now().subtract(Duration(days: 1)),
+                      ));
                       widget.notifyParent();
                     });
                     return Navigator.of(context).pop(true);
@@ -111,7 +133,8 @@ class _ZoneManagerState extends State<ZoneManager> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    newZoneName.dispose();
+    newSampleName.dispose();
+    newSampleMaxWeight.dispose();
     super.dispose();
   }
 
@@ -119,7 +142,7 @@ class _ZoneManagerState extends State<ZoneManager> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Zone Manager'),
+          title: Text('Sample Manager'),
           actions: [
             FlatButton(
                 onPressed: () {
@@ -139,9 +162,9 @@ class _ZoneManagerState extends State<ZoneManager> {
         ));
   }
 
-  List<ListTile> getListItems() => zoneList.zoneList
+  List<ListTile> getListItems() => sampleList.samples
       .asMap()
-      .map((i, item) => MapEntry(i, buildTenableListTile(item, i)))
+      .map((i, item) => MapEntry(i, buildTenableListTile(item.sampleID, i)))
       .values
       .toList();
 
@@ -150,24 +173,22 @@ class _ZoneManagerState extends State<ZoneManager> {
       contentPadding: EdgeInsets.all(10),
       tileColor: Colors.green[900],
       selectedTileColor: Colors.red,
-      key: ValueKey('zone $item $index'),
+      key: ValueKey('sample $item $index'),
       title: Row(
         children: [
           FaIcon(FontAwesomeIcons.gripVertical),
           Expanded(
               child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 8, 8),
-            child: Text('$item'),
+            child: Text(item),
           )),
           FlatButton(
               height: 50,
               minWidth: 50,
-              // color: Colors.black,
-              // shape: ,
               child: FaIcon(FontAwesomeIcons.trash),
               onPressed: () {
                 setState(() {
-                  zoneList.zoneList.removeAt(index);
+                  sampleList.samples.removeAt(index);
                   widget.notifyParent();
                 });
               }),
@@ -182,12 +203,10 @@ class _ZoneManagerState extends State<ZoneManager> {
     }
 
     setState(() {
-      String i = zoneList.zoneList[oldIndex];
+      Sample i = sampleList.samples[oldIndex];
 
-      zoneList.zoneList.removeAt(oldIndex);
-      zoneList.zoneList.insert(newIndex, i);
-
-      plantList.reindexZones(zoneList.zoneList);
+      sampleList.samples.removeAt(oldIndex);
+      sampleList.samples.insert(newIndex, i);
     });
   }
 }

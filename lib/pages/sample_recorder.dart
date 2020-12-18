@@ -6,21 +6,23 @@ import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/sample.dart';
 
-class ZoneManager extends StatefulWidget {
+class SampleRecorder extends StatefulWidget {
   final Function() notifyParent;
 
-  ZoneManager({this.notifyParent});
+  SampleRecorder({this.notifyParent});
 
   @override
-  _ZoneManagerState createState() => _ZoneManagerState();
+  _SampleRecorderState createState() => _SampleRecorderState();
 }
 
-class _ZoneManagerState extends State<ZoneManager> {
-  TextEditingController newZoneName = TextEditingController();
+class _SampleRecorderState extends State<SampleRecorder> {
+  TextEditingController newSampleMaxWeight = TextEditingController();
+  Sample selectedSample;
 
   _displayDialog() {
-    newZoneName.clear();
+    newSampleMaxWeight.clear();
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -36,7 +38,7 @@ class _ZoneManagerState extends State<ZoneManager> {
   }
 
   Widget _DialogWithTextField(BuildContext context) => Container(
-        height: 210,
+        height: 310,
         decoration: BoxDecoration(
           color: Colors.green[900],
           shape: BoxShape.rectangle,
@@ -46,25 +48,24 @@ class _ZoneManagerState extends State<ZoneManager> {
           children: <Widget>[
             SizedBox(height: 24),
             Text(
-              "Add New Zone",
+              "${selectedSample.sampleID}",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 17,
               ),
             ),
-            SizedBox(height: 10),
             Padding(
                 padding:
                     EdgeInsets.only(top: 10, bottom: 10, right: 15, left: 15),
                 child: TextFormField(
-                  controller: newZoneName,
+                  controller: newSampleMaxWeight,
                   maxLines: 1,
                   autofocus: false,
-                  keyboardType: TextInputType.text,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Zone Name',
+                    labelText: 'Enter Sample Metric',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -96,7 +97,9 @@ class _ZoneManagerState extends State<ZoneManager> {
                   ),
                   onPressed: () {
                     setState(() {
-                      zoneList.zoneList.add(newZoneName.text);
+                      //we are going to first update the sample's internal date
+                      selectedSample.updateSample(
+                          int.parse(newSampleMaxWeight.text), plantList);
                       widget.notifyParent();
                     });
                     return Navigator.of(context).pop(true);
@@ -111,67 +114,69 @@ class _ZoneManagerState extends State<ZoneManager> {
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    newZoneName.dispose();
+    newSampleMaxWeight.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // widget.notifyParent();
     return Scaffold(
         appBar: AppBar(
-          title: Text('Zone Manager'),
-          actions: [
-            FlatButton(
-                onPressed: () {
-                  _displayDialog();
-                },
-                child: FaIcon(FontAwesomeIcons.plus))
-          ],
+          title: Text('Sample Recorder'),
         ),
         body: Center(
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            child: ReorderableListView(
+            child: ListView(
               children: getListItems(),
-              onReorder: onReorder,
             ),
           ),
         ));
   }
 
-  List<ListTile> getListItems() => zoneList.zoneList
+  List<Padding> getListItems() => sampleList.samples
       .asMap()
-      .map((i, item) => MapEntry(i, buildTenableListTile(item, i)))
+      .map((i, item) =>
+          MapEntry(i, buildTenableListTile(item.sampleID, i, item)))
       .values
       .toList();
 
-  ListTile buildTenableListTile(String item, int index) {
-    return ListTile(
-      contentPadding: EdgeInsets.all(10),
-      tileColor: Colors.green[900],
-      selectedTileColor: Colors.red,
-      key: ValueKey('zone $item $index'),
-      title: Row(
-        children: [
-          FaIcon(FontAwesomeIcons.gripVertical),
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 8, 8),
-            child: Text('$item'),
-          )),
-          FlatButton(
-              height: 50,
-              minWidth: 50,
-              // color: Colors.black,
-              // shape: ,
-              child: FaIcon(FontAwesomeIcons.trash),
-              onPressed: () {
-                setState(() {
-                  zoneList.zoneList.removeAt(index);
-                  widget.notifyParent();
-                });
-              }),
-        ],
+  Padding buildTenableListTile(String item, int index, Sample sampleObj) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        tileColor:
+            sampleObj.needsUpdate() ? Colors.red[400] : Colors.green[900],
+        selectedTileColor: Colors.red,
+        key: ValueKey('sample $item $index'),
+        title: Container(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${sampleObj.sampleID}'),
+                      Text('${sampleObj.maxWeight} - ${sampleObj.lastChecked}')
+                    ]),
+              ),
+              sampleObj.needsUpdate()
+                  ? FlatButton(
+                      height: 50,
+                      minWidth: 50,
+                      child: FaIcon(FontAwesomeIcons.plus),
+                      onPressed: () {
+                        setState(() {
+                          selectedSample = sampleObj;
+                          _displayDialog();
+                        });
+                      })
+                  : Container(),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -182,12 +187,10 @@ class _ZoneManagerState extends State<ZoneManager> {
     }
 
     setState(() {
-      String i = zoneList.zoneList[oldIndex];
+      Sample i = sampleList.samples[oldIndex];
 
-      zoneList.zoneList.removeAt(oldIndex);
-      zoneList.zoneList.insert(newIndex, i);
-
-      plantList.reindexZones(zoneList.zoneList);
+      sampleList.samples.removeAt(oldIndex);
+      sampleList.samples.insert(newIndex, i);
     });
   }
 }

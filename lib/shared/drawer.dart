@@ -1,10 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 
 class MainMenu extends StatefulWidget {
+  final Function() notifyParent;
+
+  MainMenu({this.notifyParent});
   @override
   _MainMenuState createState() => _MainMenuState();
 }
@@ -23,14 +27,17 @@ class _MainMenuState extends State<MainMenu> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: <Widget>[
-                    ListTile(
-                        leading: Icon(Icons.add),
-                        title: Text('Add a New Plant'),
-                        onTap: () {
-                          setState(() {
-                            Navigator.popAndPushNamed(context, '/add_new');
-                          });
-                        }),
+                    (zoneList.zoneList.length > 0 &&
+                            sampleList.samples.length > 0)
+                        ? ListTile(
+                            leading: Icon(Icons.add),
+                            title: Text('Add a New Plant'),
+                            onTap: () {
+                              setState(() {
+                                Navigator.popAndPushNamed(context, '/add_new');
+                              });
+                            })
+                        : Container(),
                     ListTile(
                         leading: Icon(Icons.list_alt),
                         title: Text('Section Manager'),
@@ -39,6 +46,26 @@ class _MainMenuState extends State<MainMenu> {
                             Navigator.popAndPushNamed(context, '/zone_manager');
                           });
                         }),
+                    ListTile(
+                      leading: FaIcon(FontAwesomeIcons.cloudscale),
+                      title: Text('Edit Samples'),
+                      onTap: () {
+                        setState(() {
+                          Navigator.popAndPushNamed(context, '/sample_manager');
+                        });
+                      },
+                    ),
+
+                    ListTile(
+                      leading: FaIcon(FontAwesomeIcons.cloudscale),
+                      title: Text('Record Samples'),
+                      onTap: () {
+                        setState(() {
+                          Navigator.popAndPushNamed(
+                              context, '/sample_recorder');
+                        });
+                      },
+                    ),
                     // ListTile(
                     //   leading: Icon(Icons.search_sharp),
                     //   title: Text('Plant Query'),
@@ -53,18 +80,6 @@ class _MainMenuState extends State<MainMenu> {
                         });
                       },
                     ),
-                    // ListTile(
-                    //   leading: Icon(Icons.settings),
-                    //   title: Text('Settings'),
-                    //   //onTap: () {},
-                    // ),
-                    // ListTile(
-                    //   leading: Icon(Icons.exit_to_app),
-                    //   title: Text('Finish and Save Data'),
-                    //   //onTap: () {
-                    //   // Navigator.pushReplacementNamed(context, '/login');
-                    //   //},
-                    // ),
                   ],
                 ),
               ),

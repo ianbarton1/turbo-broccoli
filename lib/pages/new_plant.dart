@@ -6,11 +6,13 @@ import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/sample.dart';
 
 class NewPlant extends StatefulWidget {
   bool editMode = false;
   Plant plant;
-  NewPlant({this.plant}) {
+  final Function() notifyParent;
+  NewPlant({this.plant, this.notifyParent}) {
     if (plant != null) editMode = true;
   }
 
@@ -33,10 +35,17 @@ class _NewPlantState extends State<NewPlant> {
       _rangeValues = RangeValues(
           tempPlant.dbwLow.toDouble(), tempPlant.dbwHigh.toDouble());
       newHomeZone = tempPlant.homeZone;
+      sampleSelect = tempPlant.sampleID;
       if (!zoneList.zoneList.contains(tempPlant.homeZone))
         zoneList.zoneList.add(tempPlant.homeZone);
+      isPlantDynamic = tempPlant.isPlantDynamic;
     } else {
       uidController.text = plantList.freeID().toString();
+      newHomeZone = zoneList.zoneList.first;
+      sampleSelect = sampleList.samples.first.sampleID;
+      lastWateredPicker = DateTime(lastWateredPicker.year,
+          lastWateredPicker.month, lastWateredPicker.day);
+      previousWateredPicker = lastWateredPicker.subtract(Duration(days: 7));
     }
   }
 
@@ -48,11 +57,13 @@ class _NewPlantState extends State<NewPlant> {
   final dbwLowController = TextEditingController(text: '0');
   final dbwHighController = TextEditingController(text: '365');
   String newHomeZone;
+  String sampleSelect;
   RangeValues _rangeValues = new RangeValues(1, 100);
+  bool isPlantDynamic = false;
 
   DateTime temp;
   DateTime lastWateredPicker = DateTime.now();
-  DateTime previousWateredPicker = DateTime.now().subtract(Duration(days: 7));
+  DateTime previousWateredPicker;
 
   @override
   void dispose() {
@@ -105,6 +116,7 @@ class _NewPlantState extends State<NewPlant> {
                       if (plantList.idCheck(int.parse(value)) &&
                           editMode == false)
                         return 'This UID is already in use.';
+
                       return null;
                     },
                     onChanged: (value) {
@@ -251,6 +263,53 @@ class _NewPlantState extends State<NewPlant> {
                 //   },
                 //   controller: zoneController,
                 // ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                            activeColor: Colors.blue,
+                            checkColor: Colors.black,
+                            value: isPlantDynamic,
+                            onChanged: (value) {
+                              setState(() {
+                                isPlantDynamic ^= true;
+                              });
+                            }),
+                        Text('Make Plant Dynamic')
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        isPlantDynamic
+                            ? Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(24.0),
+                                    child: Text('Sample Subscription'),
+                                  ),
+                                  DropdownButton<String>(
+                                    value: sampleSelect,
+                                    items:
+                                        sampleList.samples.map((Sample value) {
+                                      return new DropdownMenuItem<String>(
+                                        value: value.sampleID,
+                                        child: new Text(value.sampleID),
+                                      );
+                                    }).toList(),
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        sampleSelect = newValue;
+                                      });
+                                    },
+                                  )
+                                ],
+                              )
+                            : Container(),
+                      ],
+                    ),
+                  ],
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
@@ -274,6 +333,15 @@ class _NewPlantState extends State<NewPlant> {
                               homeZone: newHomeZone,
                               dbwLow: _rangeValues.start.round(),
                               dbwHigh: _rangeValues.end.round(),
+                              waterMode: false,
+                              isDelayed: false,
+                              delayFactor: 2,
+                              isPlantDynamic: isPlantDynamic,
+                              currentActivitySampleCount: 0,
+                              currentActivitySum: 0,
+                              lastActivitySampleCount: 0,
+                              lastActivitySum: 0,
+                              sampleID: sampleSelect,
                             ));
                           } else {
                             tempPlant.name = nameController.text;
@@ -283,6 +351,8 @@ class _NewPlantState extends State<NewPlant> {
                             tempPlant.dbwLow = _rangeValues.start.round();
                             tempPlant.dbwHigh = _rangeValues.end.round();
                             tempPlant.homeZone = newHomeZone;
+                            tempPlant.isPlantDynamic = isPlantDynamic;
+                            tempPlant.sampleID = sampleSelect;
                           }
                           //common to both edit and new plant
                           plantList.plantList[plantList.plantList.length - 1]
@@ -291,10 +361,15 @@ class _NewPlantState extends State<NewPlant> {
                                   .plantList[plantList.plantList.length - 1]
                                   .suggestedWaterDate();
                           plantList.reindexZones(zoneList.zoneList);
-                          saveDisk(plantList, zoneList);
-                          Navigator.of(context)
-                              .popUntil((route) => route.isFirst);
-                          Navigator.pushReplacementNamed(context, '/home');
+                          saveDisk(plantList, zoneList, sampleList);
+                          if (editMode == true) {
+                            widget.notifyParent();
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.of(context)
+                                .popUntil((route) => route.isFirst);
+                            Navigator.pushReplacementNamed(context, '/home');
+                          }
                         }
                       },
                       child:
