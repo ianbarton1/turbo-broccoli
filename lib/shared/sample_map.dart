@@ -7,6 +7,14 @@ class SampleMap {
 
   //A sample needs attention!
 
+  bool containsID(String sampleID) {
+    samples.forEach((element) {
+      if (element.sampleID == sampleID) return true;
+    });
+
+    return false;
+  }
+
   bool needsUpdate() {
     bool updateState = false;
     samples.forEach((element) {

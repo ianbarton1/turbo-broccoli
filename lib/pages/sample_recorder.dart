@@ -38,7 +38,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
   }
 
   Widget _DialogWithTextField(BuildContext context) => Container(
-        height: 310,
+        height: 200,
         decoration: BoxDecoration(
           color: Colors.green[900],
           shape: BoxShape.rectangle,
@@ -51,7 +51,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
               "${selectedSample.sampleID}",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 17,
               ),

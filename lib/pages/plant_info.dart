@@ -76,6 +76,10 @@ class _PlantInfoState extends State<PlantInfo> {
                 style: TextStyle(fontSize: 20),
               ),
               Text(
+                'Is Delayed Plant: ${widget.plant.isDelayed}',
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
                 'Current Check Mode: ${widget.plant.waterMode}',
                 style: TextStyle(fontSize: 20),
               ),

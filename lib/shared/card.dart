@@ -59,10 +59,10 @@ class _PlantCardState extends State<PlantCard> {
     }
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
-          widget.tommy.needsUpdate() ? Colors.black45 : Colors.transparent,
+          widget.tommy.isLocked() ? Colors.black45 : Colors.transparent,
           BlendMode.darken),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: Card(
           color: tileColor,
           child: ListTile(
@@ -73,6 +73,7 @@ class _PlantCardState extends State<PlantCard> {
             title: Column(
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Chip(
                       padding: EdgeInsets.all(0),
@@ -88,7 +89,7 @@ class _PlantCardState extends State<PlantCard> {
                     Expanded(
                       child: Container(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                          padding: const EdgeInsets.fromLTRB(10, 0, 0, 10),
                           child: Text(
                             '${widget.tommy.name}',
                             overflow: TextOverflow.visible,
@@ -98,6 +99,26 @@ class _PlantCardState extends State<PlantCard> {
                                 fontStyle: FontStyle.italic),
                           ),
                         ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: tileColor,
+                      ),
+                      child: Column(
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.clock,
+                            color: widget.tommy.isDelayed
+                                ? Colors.black
+                                : Colors.transparent,
+                          ),
+                          FaIcon(FontAwesomeIcons.chartBar,
+                              color: widget.tommy.isPlantDynamic
+                                  ? Colors.black
+                                  : Colors.transparent)
+                        ],
                       ),
                     ),
                   ],
@@ -152,7 +173,7 @@ class _PlantCardState extends State<PlantCard> {
                         onPressed: () {
                           setState(() {
                             // widget.tommy.checkStatus = 2;
-                            if (!widget.tommy.needsUpdate())
+                            if (!widget.tommy.isLocked())
                               plantList.plantList[widget.index].checkStatus =
                                   plantList.plantList[widget.index]
                                               .checkStatus ==
@@ -183,7 +204,7 @@ class _PlantCardState extends State<PlantCard> {
                         icon: FaIcon(FontAwesomeIcons.ban, color: textColor),
                         onPressed: () {
                           setState(() {
-                            if (!widget.tommy.needsUpdate())
+                            if (!widget.tommy.isLocked())
                               plantList.plantList[widget.index].checkStatus =
                                   plantList.plantList[widget.index]
                                               .checkStatus ==

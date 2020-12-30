@@ -73,6 +73,9 @@ class Plant {
     if (this.currentActivitySum == null) currentActivitySum = 0;
     if (this.lastActivitySampleCount == null) lastActivitySampleCount = 0;
     if (this.lastActivitySum == null) lastActivitySum = 0;
+    if (this.isDelayed == null) isDelayed = false;
+    if (this.waterMode == null) waterMode = false;
+    if (this.delayFactor == null) delayFactor = 2;
   }
 
   void setWateringDates() {
@@ -93,16 +96,10 @@ class Plant {
       if (waterMode == false) setWateringDates();
       lastWatered = DateTime.now();
       dbw = min(
-              max(
-                  dbwLow,
-                  (activeWatered.difference(previousWater).inDays + 1) *
-                      (!isDelayed ? 1 : (1 / delayFactor))),
+              max(dbwLow, (activeWatered.difference(previousWater).inDays + 1)),
               dbwHigh)
           .round();
       multiplier = 0.75;
-      nextWater = suggestedWaterDate();
-      checkStatus = 0;
-      waterMode = false;
 
       if (isPlantDynamic) {
         lastActivitySampleCount = currentActivitySampleCount;
@@ -110,6 +107,9 @@ class Plant {
         currentActivitySampleCount = 0;
         currentActivitySum = 0;
       }
+      nextWater = suggestedWaterDate();
+      checkStatus = 0;
+      waterMode = false;
     }
   }
 
@@ -156,10 +156,25 @@ class Plant {
     if (!isPlantDynamic) return false;
     //calculate how many days since lastWatered and if it's higher than current sample count
     //then we need an update
-    int lastWateredDiff = DateTime.now().difference(lastWatered).inDays;
+    int lastWateredDiff = DateTime.now()
+        .subtract(Duration(hours: 12))
+        .difference(lastWatered)
+        .inDays;
     print('lastwaterediff $lastWateredDiff');
     if (lastWateredDiff > currentActivitySampleCount) return true;
     //otherwise we don't
+    return false;
+  }
+
+  bool isAvailable() {
+    DateTime tempDate = DateTime.now().subtract(Duration(hours: 18));
+    if (tempDate.isSameDay(DateTime.now())) return true;
+    return false;
+  }
+
+  bool isLocked() {
+    if (!isAvailable()) return true;
+    if (needsUpdate()) return true;
     return false;
   }
 

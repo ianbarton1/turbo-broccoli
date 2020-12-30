@@ -27,6 +27,14 @@ class _NewPlantState extends State<NewPlant> {
   Plant tempPlant;
   _NewPlantState(this.editMode, this.tempPlant) {
     // if (widget.plant != null) tempPlant = widget.plant;
+    // create some filler items if the zoneList or sampleList is empty
+    if (zoneList.zoneList.isEmpty) zoneList.zoneList.add('No Zone');
+    if (sampleList.samples.isEmpty) {
+      sampleList.addNew(Sample(
+          sampleID: 'No Sample', maxWeight: 0, lastChecked: DateTime.now()));
+      sampleSelect = 'No Sample';
+    }
+    //
     if (editMode == true) {
       uidController.text = tempPlant.uid.toString();
       nameController.text = tempPlant.name;
@@ -38,7 +46,12 @@ class _NewPlantState extends State<NewPlant> {
       sampleSelect = tempPlant.sampleID;
       if (!zoneList.zoneList.contains(tempPlant.homeZone))
         zoneList.zoneList.add(tempPlant.homeZone);
+      if (!sampleList.containsID(sampleSelect)) {
+        sampleSelect = sampleList.samples.first.sampleID;
+      }
       isPlantDynamic = tempPlant.isPlantDynamic;
+      isPlantDelayed = tempPlant.isDelayed;
+      waterMode = tempPlant.waterMode;
     } else {
       uidController.text = plantList.freeID().toString();
       newHomeZone = zoneList.zoneList.first;
@@ -60,6 +73,9 @@ class _NewPlantState extends State<NewPlant> {
   String sampleSelect;
   RangeValues _rangeValues = new RangeValues(1, 100);
   bool isPlantDynamic = false;
+
+  bool isPlantDelayed = false;
+  bool waterMode = false;
 
   DateTime temp;
   DateTime lastWateredPicker = DateTime.now();
@@ -121,7 +137,8 @@ class _NewPlantState extends State<NewPlant> {
                     },
                     onChanged: (value) {
                       setState(() {
-                        uidCheck = !plantList.idCheck(int.parse(value));
+                        uidCheck = !plantList.idCheck(int.parse(value)) ||
+                            int.parse(value) == tempPlant.uid;
                       });
                     },
                     controller: uidController,
@@ -310,6 +327,24 @@ class _NewPlantState extends State<NewPlant> {
                     ),
                   ],
                 ),
+                Column(
+                  children: [
+                    Checkbox(
+                        value: isPlantDelayed,
+                        onChanged: (value) {
+                          setState(() {
+                            isPlantDelayed ^= true;
+                          });
+                        }),
+                    Checkbox(
+                        value: waterMode,
+                        onChanged: (value) {
+                          setState(() {
+                            waterMode ^= true;
+                          });
+                        }),
+                  ],
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
@@ -333,8 +368,8 @@ class _NewPlantState extends State<NewPlant> {
                               homeZone: newHomeZone,
                               dbwLow: _rangeValues.start.round(),
                               dbwHigh: _rangeValues.end.round(),
-                              waterMode: false,
-                              isDelayed: false,
+                              waterMode: waterMode,
+                              isDelayed: isPlantDelayed,
                               delayFactor: 2,
                               isPlantDynamic: isPlantDynamic,
                               currentActivitySampleCount: 0,
@@ -353,6 +388,8 @@ class _NewPlantState extends State<NewPlant> {
                             tempPlant.homeZone = newHomeZone;
                             tempPlant.isPlantDynamic = isPlantDynamic;
                             tempPlant.sampleID = sampleSelect;
+                            tempPlant.isDelayed = isPlantDelayed;
+                            tempPlant.waterMode = waterMode;
                           }
                           //common to both edit and new plant
                           plantList.plantList[plantList.plantList.length - 1]
