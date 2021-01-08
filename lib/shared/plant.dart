@@ -156,10 +156,10 @@ class Plant {
     if (!isPlantDynamic) return false;
     //calculate how many days since lastWatered and if it's higher than current sample count
     //then we need an update
-    int lastWateredDiff = DateTime.now()
-        .subtract(Duration(hours: 12))
-        .difference(lastWatered)
-        .inDays;
+    DateTime tempDate = DateTime.now().subtract(Duration(hours: 12));
+    tempDate = DateTime(tempDate.year, tempDate.month, tempDate.day);
+    int lastWateredDiff = min(tempDate.difference(lastWatered).inDays,
+        nextWater.difference(lastWatered).inDays);
     print('lastwaterediff $lastWateredDiff');
     if (lastWateredDiff > currentActivitySampleCount) return true;
     //otherwise we don't
@@ -168,7 +168,8 @@ class Plant {
 
   bool isAvailable() {
     DateTime tempDate = DateTime.now().subtract(Duration(hours: 18));
-    if (tempDate.isSameDay(DateTime.now())) return true;
+    tempDate = DateTime(tempDate.year, tempDate.month, tempDate.day);
+    if (tempDate.isSameOrAfter(nextWater)) return true;
     return false;
   }
 
