@@ -176,18 +176,19 @@ class _HomeState extends State<Home> {
                       }
                     });
                   }),
-              InkWell(
-                onLongPress: () {
-                  setState(() {
-                    _holidayMode ^= true;
-                    plantList.changeHolidayMode(_holidayMode);
-                  });
-                },
-                child: IconButton(
-                    color: (_holidayMode) ? Colors.yellow : Colors.grey,
-                    icon: FaIcon(FontAwesomeIcons.planeDeparture),
-                    onPressed: () {}),
-              ),
+              //holiday button (temp disabled)
+              // InkWell(
+              //   onLongPress: () {
+              //     setState(() {
+              //       _holidayMode ^= true;
+              //       plantList.changeHolidayMode(_holidayMode);
+              //     });
+              //   },
+              //   child: IconButton(
+              //       color: (_holidayMode) ? Colors.yellow : Colors.grey,
+              //       icon: FaIcon(FontAwesomeIcons.planeDeparture),
+              //       onPressed: () {}),
+              // ),
               InkWell(
                 onLongPress: () {
                   setState(() {
