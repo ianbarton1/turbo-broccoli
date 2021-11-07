@@ -10,7 +10,8 @@ class Sample {
   Sample({this.maxWeight, this.lastChecked, this.sampleID});
 
   bool needsUpdate() {
-    if (lastChecked.isSameDay(DateTime.now())) return false;
+    if (lastChecked.isSameDay(DateTime.now().subtract(Duration(hours: 12))))
+      return false;
     return true;
   }
 
@@ -23,6 +24,8 @@ class Sample {
     plantCollection.plantList.forEach((element) {
       element.updateSample(sampleID, (maxWeight - sample));
     });
+
+    plantCollection.orderCollection(false);
   }
 
   Map<String, dynamic> toJson() => {

@@ -1,5 +1,5 @@
 name: turbo_broccoli
-description: A new Flutter project.
+description: A plant watering tracking system to help water large collections of plants
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -28,6 +28,10 @@ dependencies:
   font_awesome_flutter: ^8.10.0
   dart_date: ^1.0.7
   badges: ^1.1.4
+  sqflite:
+  path:
+  image_picker: ^0.6.7+22
+
 
 
 

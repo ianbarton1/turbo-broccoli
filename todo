@@ -1,0 +1,12 @@
+-- Add Feeding Functionality
+-- Load Balancing
+-- Seasonal Delayed Plants
+-- Delayed Plants Improvements
+    -- Decision Stage Cards need to be differentiated from Watering Stage Cards DONE
+        -- Changed the icons from a plain tick to calendar tick option DONE
+    -- Watering Stage Cards need to not show 'no water' option, only have the option to water DONE
+        -- If a plant is both delayed and in watering stage the 'no water option is removed leaving only information and water' DONE
+-- Plant Query/ Finder
+-- BugFix: UID check on Add Plant/Edit Plant always returns OK, should return whether the UID is ok instead. DONE
+    --both bugs have been squashed. rather convoluted way of achieving this but it's ok DONE
+-- View Plant Screen needs to be better presented/ organised

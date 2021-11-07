@@ -1,10 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class PlantCollection {
   List<Plant> plantList = List();
+  bool _holidayMode = false;
 
   PlantCollection();
+
+  void saveToDatabase(Database database) async {
+    // await database.delete('plants', where: null);
+    plantList.forEach((element) async {
+      await database.insert(
+        'plants',
+        element.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
+  }
+
+  void changeHolidayMode(bool enable) {
+    plantList.forEach((element) {
+      element.holidayMode(enable);
+    });
+
+    _holidayMode = enable;
+  }
 
   void reindexZones(List<String> zoneList) {
     print('reindexing zones');
@@ -13,18 +36,32 @@ class PlantCollection {
     });
   }
 
-  void orderCollection() {
-    plantList.sort((a, b) {
-      int cmp1 = a.nextWater.compareTo(b.nextWater);
-      if (cmp1 != 0) return cmp1;
-      int cmp = a.section.compareTo(b.section);
-      if (cmp != 0) return cmp;
-      return a.uid.compareTo(b.uid);
-    });
+  void removePlant(int index, Database database) {
+    int targetuid = plantList[index].uid;
+    print("attempting to delete" + targetuid.toString());
+    database.delete("plants", where: "uid = ?", whereArgs: [targetuid]);
+    plantList.removeAt(index);
+  }
+
+  void orderCollection(bool sortbyid) {
+    if (!sortbyid) {
+      plantList.sort((a, b) {
+        int cmp1 = a.scheduledDate().compareTo(b.scheduledDate());
+        if (cmp1 != 0) return cmp1;
+        int cmp = a.section.compareTo(b.section);
+        if (cmp != 0) return cmp;
+        return a.uid.compareTo(b.uid);
+      });
+    } else {
+      plantList.sort((a, b) {
+        return a.uid.compareTo(b.uid);
+      });
+    }
   }
 
   int liveCount() {
-    int result = dayCount(DateTime.now());
+    int result =
+        dayCount(DateTime.now().add(Duration(days: _holidayMode ? 14 : 0)));
     print('liveCount= $result');
     return result;
   }
@@ -32,7 +69,7 @@ class PlantCollection {
   int dayCount(DateTime selectedDate) {
     int result = 0;
     plantList.forEach((element) {
-      if (!element.nextWater.isAfter(selectedDate)) result++;
+      if (!element.scheduledDate().isAfter(selectedDate)) result++;
     });
     print('dayCount= $result');
     return result;
@@ -70,7 +107,7 @@ class PlantCollection {
           break;
       }
     });
-    orderCollection();
+    orderCollection(true);
   }
 
   int freeID() {

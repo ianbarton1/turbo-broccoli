@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/pages/backup.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
+import 'package:turbo_broccoli/pages/plant_info.dart';
 import 'package:turbo_broccoli/pages/sample_manager.dart';
 import 'package:turbo_broccoli/pages/sample_recorder.dart';
 import 'package:turbo_broccoli/pages/zone_manager.dart';
@@ -21,32 +22,64 @@ import 'dart:developer';
 
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
 PlantCollection plantList;
 ZoneMap zoneList;
 SampleMap sampleList;
 Random rng = new Random();
 bool _showAll = false;
 bool _allowDelete = false;
+bool _holidayMode = false;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final Database database = await openDatabase(
+    join(await getDatabasesPath(), 'turbo_brocolli.db'),
+    onCreate: (db, version) {
+      // Run the CREATE TABLE statement on the database.
+      db.execute(
+        'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
+      );
+      return db.execute(
+        'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, FOREIGN KEY(plantid) REFERENCES plants(uid))',
+      );
+    },
+    version: 1,
+    onOpen: (db) {
+      db.execute(
+        'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
+      );
+      return db.execute(
+        'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, FOREIGN KEY(plantid) REFERENCES plants(uid))',
+      );
+    },
+  );
+
   runApp(Home(
     title: 'Turbo Broccoli',
+    database: database,
   ));
 }
 
 class Home extends StatefulWidget {
-  Home({Key key, this.title}) : super(key: key);
+  Home({Key key, this.title, this.database}) : super(key: key);
   final String title;
+  final Database database;
 
   @override
   _HomeState createState() => _HomeState();
 
   Widget build(BuildContext context) {
-    plantList.orderCollection();
+    plantList.orderCollection(_showAll);
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => Home(title: 'Turbo Broccoli'),
+        '/': (context) => Home(
+              title: 'Turbo Broccoli',
+              database: database,
+            ),
       },
     );
   }
@@ -56,13 +89,19 @@ class _HomeState extends State<Home> {
   void populateList() async {
     // SharedPreferences debug = await SharedPreferences.getInstance();
     // await debug.clear();
-    plantList = await fromDisk();
+
+    plantList = await fromDisk(widget.database);
     zoneList = await loadZones();
     sampleList = await sampleFromDisk();
     if (plantList == null) plantList = new PlantCollection();
     if (zoneList == null) zoneList = new ZoneMap();
     if (sampleList == null) sampleList = new SampleMap();
     setState(() {});
+  }
+
+  void updateParent() {
+    setState(() {});
+    print("update main");
   }
 
   int liveCount = 0;
@@ -76,7 +115,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     if (plantList != null) {
-      plantList.orderCollection();
+      plantList.orderCollection(_showAll);
       liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
     }
 
@@ -85,7 +124,9 @@ class _HomeState extends State<Home> {
         '/home': (context) => Home(
               title: 'Turbo Broccoli',
             ),
-        '/add_new': (context) => NewPlant(),
+        '/add_new': (context) => NewPlant(
+              database: widget.database,
+            ),
         '/zone_manager': (context) => ZoneManager(
               notifyParent: () {
                 setState(() {});
@@ -138,6 +179,18 @@ class _HomeState extends State<Home> {
               InkWell(
                 onLongPress: () {
                   setState(() {
+                    _holidayMode ^= true;
+                    plantList.changeHolidayMode(_holidayMode);
+                  });
+                },
+                child: IconButton(
+                    color: (_holidayMode) ? Colors.yellow : Colors.grey,
+                    icon: FaIcon(FontAwesomeIcons.planeDeparture),
+                    onPressed: () {}),
+              ),
+              InkWell(
+                onLongPress: () {
+                  setState(() {
                     _allowDelete ^= true;
                   });
                 },
@@ -166,27 +219,49 @@ class _HomeState extends State<Home> {
           ),
           body: Center(
               child: liveCount > 0
-                  ? ListView.builder(
-                      itemCount: plantList != null
-                          ? min(plantList.plantList.length, liveCount)
-                          : 0,
-                      itemBuilder: (context, index) {
-                        return plantList != null
-                            ? Column(children: [
-                                InkWell(
-                                  child: PlantCard(
-                                    tommy: plantList.plantList[index],
-                                    index: index,
-                                    allowDelete: _allowDelete,
-                                    notifyParent: () {
-                                      setState(() {});
-                                    },
-                                  ),
-                                  onTap: () {},
-                                ),
-                              ])
-                            : Center();
-                      })
+                  ? (!_showAll
+                      ? PageView.builder(
+                          itemCount: plantList != null
+                              ? min(plantList.plantList.length, liveCount)
+                              : 0,
+                          itemBuilder: (context, index) {
+                            return plantList != null
+                                ? InkWell(
+                                    child: Container(
+                                      height: 1000,
+                                      child: PlantInfo(
+                                          updateParent: () {
+                                            updateParent();
+                                          },
+                                          database: widget.database,
+                                          plant: plantList.plantList[index]),
+                                    ),
+                                    onTap: () {},
+                                  )
+                                : Center();
+                          })
+                      : ListView.builder(
+                          itemCount: plantList != null
+                              ? min(plantList.plantList.length, liveCount)
+                              : 0,
+                          itemBuilder: (context, index) {
+                            return plantList != null
+                                ? InkWell(
+                                    child: Container(
+                                      child: PlantCard(
+                                        tommy: plantList.plantList[index],
+                                        index: index,
+                                        allowDelete: _allowDelete,
+                                        notifyParent: () {
+                                          setState(() {});
+                                        },
+                                        database: widget.database,
+                                      ),
+                                    ),
+                                    onTap: () {},
+                                  )
+                                : Center();
+                          }))
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -210,14 +285,17 @@ class _HomeState extends State<Home> {
             onPressed: () {
               print('this button works');
               plantList.actionChanges();
-              plantList.orderCollection();
-              saveDisk(plantList, zoneList, sampleList);
+              plantList.orderCollection(_showAll);
+              saveDisk(plantList, zoneList, sampleList, widget.database);
 
               setState(() {});
             },
             backgroundColor: Colors.green[400],
             tooltip: 'Action all changes and save.',
-            child: FaIcon(FontAwesomeIcons.checkSquare),
+            child: Text(
+              plantList.liveCount().toString(),
+              style: TextStyle(fontSize: 20),
+            ),
           ),
         ),
       ),

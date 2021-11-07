@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
@@ -8,26 +10,34 @@ import 'package:turbo_broccoli/shared/sample_map.dart';
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
 //PlantCollection loadData;
-void saveDisk(
-    PlantCollection saveData, ZoneMap saveZone, SampleMap saveSamples) async {
+void saveDisk(PlantCollection saveData, ZoneMap saveZone, SampleMap saveSamples,
+    Database database) async {
   SharedPreferences plants = await SharedPreferences.getInstance();
   plants.setString('plants', jsonEncode(saveData.toJson()));
   print('savedisk');
   print(jsonEncode(saveData.toJson()));
+  saveData.saveToDatabase(database);
+
   plants.setString('zones', jsonEncode(saveZone.zoneList));
   print(jsonEncode(saveZone.zoneList));
   plants.setString('samples', jsonEncode(saveSamples.toJson()));
   print(jsonEncode(saveSamples.toJson()));
 }
 
-Future<List<dynamic>> loadDisk() async {
+Future<List<dynamic>> loadDisk(Database database) async {
   SharedPreferences plants = await SharedPreferences.getInstance();
+
+  final List<Map<String, dynamic>> plantmaps = await database.query('plants');
+  print("plantsmaps");
+  String plantObjects = jsonEncode(plantmaps);
+  print("end of plantsmaps");
+
   //loadData = PlantCollection();
   List<dynamic> loadData;
   if (!plants.containsKey('plants')) {
     plants.setString('plants', '[]');
   }
-  loadData = jsonDecode(plants.get('plants'));
+  loadData = jsonDecode(plantObjects);
 
   return loadData;
 }
@@ -78,8 +88,8 @@ Future<SampleMap> sampleFromDisk() async {
   return jsonToSampleMap(temp);
 }
 
-Future<PlantCollection> fromDisk() async {
-  List<dynamic> temp = await loadDisk();
+Future<PlantCollection> fromDisk(Database database) async {
+  List<dynamic> temp = await loadDisk(database);
   return jsonToCollection(temp);
 }
 
@@ -93,7 +103,7 @@ PlantCollection jsonToCollection(List<dynamic> temp) {
       previousWater: DateTime.parse(e['previousWater']),
       lastWatered: DateTime.parse(e['lastWatered']),
       nextWater: DateTime.parse(e['nextWater']),
-      multiplier: e['multiplier'].toDouble(),
+      multiplier: e['multiplier'],
       checkStatus: e['checkStatus'],
       section: e['section'],
       zone: e['zone'],
@@ -101,15 +111,23 @@ PlantCollection jsonToCollection(List<dynamic> temp) {
       homeZone: e['homeZone'],
       dbwHigh: e['dbwHigh'],
       dbwLow: e['dbwLow'],
-      waterMode: e['waterMode'],
-      delayFactor: e['delayFactor'].toDouble(),
-      isDelayed: e['isDelayed'],
+      waterMode: (e['waterMode'].toString() == "true" || e['waterMode'] == 1)
+          ? true
+          : false,
+      delayFactor: e['delayFactor'],
+      isDelayed: (e['isDelayed'].toString() == "true" || e['isDelayed'] == 1)
+          ? true
+          : false,
       currentActivitySampleCount: e['currentActivitySampleCount'],
-      currentActivitySum: e['currentActivitySum'].toDouble(),
-      isPlantDynamic: e['isPlantDynamic'],
+      currentActivitySum: e['currentActivitySum'],
+      isPlantDynamic:
+          (e['isPlantDynamic'].toString() == "true" || e['isPlantDynamic'] == 1)
+              ? true
+              : false,
       lastActivitySampleCount: e['lastActivitySampleCount'],
-      lastActivitySum: e['lastActivitySum'].toDouble(),
+      lastActivitySum: e['lastActivitySum'],
       sampleID: e['sampleID'],
+      loadBalancingOffset: e['loadBalancingOffset'],
     ));
   });
 

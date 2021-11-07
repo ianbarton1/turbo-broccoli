@@ -1,6 +1,7 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/pages/plant_info.dart';
@@ -13,13 +14,15 @@ class PlantCard extends StatefulWidget {
   final Plant tommy;
   final int index;
   final bool allowDelete;
+  final Database database;
   //constructor?
   PlantCard(
       {Key key,
       this.tommy,
       this.index,
       this.allowDelete,
-      @required this.notifyParent})
+      @required this.notifyParent,
+      this.database})
       : super(key: key);
 
   @override
@@ -169,7 +172,11 @@ class _PlantCardState extends State<PlantCard> {
                     Expanded(
                       child: IconButton(
                         iconSize: 45,
-                        icon: FaIcon(FontAwesomeIcons.check, color: textColor),
+                        icon: (widget.tommy.isDelayed &&
+                                widget.tommy.waterMode == false)
+                            ? FaIcon(FontAwesomeIcons.calendarCheck,
+                                color: textColor)
+                            : FaIcon(FontAwesomeIcons.check, color: textColor),
                         onPressed: () {
                           setState(() {
                             // widget.tommy.checkStatus = 2;
@@ -180,7 +187,8 @@ class _PlantCardState extends State<PlantCard> {
                                           2
                                       ? 0
                                       : 2;
-                            saveDisk(plantList, zoneList, sampleList);
+                            saveDisk(plantList, zoneList, sampleList,
+                                widget.database);
                           });
                         },
                       ),
@@ -193,33 +201,44 @@ class _PlantCardState extends State<PlantCard> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      PlantInfo(plant: widget.tommy)));
+                                  builder: (context) => PlantInfo(
+                                        plant: widget.tommy,
+                                        database: widget.database,
+                                      )));
                         },
                       ),
                     ),
-                    Expanded(
-                      child: IconButton(
-                        iconSize: 45,
-                        icon: FaIcon(FontAwesomeIcons.ban, color: textColor),
-                        onPressed: () {
-                          setState(() {
-                            if (!widget.tommy.isLocked())
-                              plantList.plantList[widget.index].checkStatus =
-                                  plantList.plantList[widget.index]
-                                              .checkStatus ==
-                                          1
-                                      ? 0
-                                      : 1;
-                            saveDisk(plantList, zoneList, sampleList);
-                          });
-                        },
-                      ),
+                    Container(
+                      child: (widget.tommy.isDelayed == false ||
+                              widget.tommy.waterMode == false)
+                          ? Expanded(
+                              child: IconButton(
+                                iconSize: 45,
+                                icon: FaIcon(FontAwesomeIcons.ban,
+                                    color: textColor),
+                                onPressed: () {
+                                  setState(() {
+                                    if (!widget.tommy.isLocked())
+                                      plantList.plantList[widget.index]
+                                          .checkStatus = plantList
+                                                  .plantList[widget.index]
+                                                  .checkStatus ==
+                                              1
+                                          ? 0
+                                          : 1;
+                                    saveDisk(plantList, zoneList, sampleList,
+                                        widget.database);
+                                  });
+                                },
+                              ),
+                            )
+                          : Container(),
                     ),
                     widget.allowDelete
                         ? FlatButton(
                             onLongPress: () {
-                              plantList.plantList.removeAt(widget.index);
+                              plantList.removePlant(
+                                  widget.index, widget.database);
                               print('attempt remove');
                               widget.notifyParent();
                             },

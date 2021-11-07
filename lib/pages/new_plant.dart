@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
@@ -12,7 +13,8 @@ class NewPlant extends StatefulWidget {
   bool editMode = false;
   Plant plant;
   final Function() notifyParent;
-  NewPlant({this.plant, this.notifyParent}) {
+  final Database database;
+  NewPlant({this.plant, this.notifyParent, this.database}) {
     if (plant != null) editMode = true;
   }
 
@@ -129,16 +131,20 @@ class _NewPlantState extends State<NewPlant> {
                         )),
                     validator: (value) {
                       if (value.isEmpty) return 'Enter an UID';
-                      if (plantList.idCheck(int.parse(value)) &&
-                          editMode == false)
+                      if ((plantList.idCheck(int.parse(value)) &&
+                              editMode == false) ||
+                          (int.parse(value) !=
+                                  (tempPlant == null ? -1 : tempPlant.uid) &&
+                              plantList.idCheck(int.parse(value))))
                         return 'This UID is already in use.';
 
                       return null;
                     },
                     onChanged: (value) {
                       setState(() {
-                        uidCheck = !plantList.idCheck(int.parse(value)) ||
-                            int.parse(value) == tempPlant.uid;
+                        uidCheck = !plantList.idCheck(int.parse(value));
+                        if (editMode && tempPlant.uid == int.parse(value))
+                          uidCheck = true;
                       });
                     },
                     controller: uidController,
@@ -317,6 +323,7 @@ class _NewPlantState extends State<NewPlant> {
                                     onChanged: (newValue) {
                                       setState(() {
                                         sampleSelect = newValue;
+                                        print(sampleSelect);
                                       });
                                     },
                                   )
@@ -327,24 +334,25 @@ class _NewPlantState extends State<NewPlant> {
                     ),
                   ],
                 ),
-                Column(
-                  children: [
-                    Checkbox(
-                        value: isPlantDelayed,
-                        onChanged: (value) {
-                          setState(() {
-                            isPlantDelayed ^= true;
-                          });
-                        }),
-                    Checkbox(
-                        value: waterMode,
-                        onChanged: (value) {
-                          setState(() {
-                            waterMode ^= true;
-                          });
-                        }),
-                  ],
-                ),
+                // These boxes were a hacky way io be able to modify some functionlity that I've decided I'm probably not even going to use
+                // Column(
+                //   children: [
+                //     Checkbox(
+                //         value: isPlantDelayed,
+                //         onChanged: (value) {
+                //           setState(() {
+                //             isPlantDelayed ^= true;
+                //           });
+                //         }),
+                //     Checkbox(
+                //         value: waterMode,
+                //         onChanged: (value) {
+                //           setState(() {
+                //             waterMode ^= true;
+                //           });
+                //         }),
+                //   ],
+                // ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
@@ -379,6 +387,7 @@ class _NewPlantState extends State<NewPlant> {
                               sampleID: sampleSelect,
                             ));
                           } else {
+                            print('edit mode');
                             tempPlant.name = nameController.text;
                             tempPlant.uid = int.parse(uidController.text);
                             tempPlant.previousWater = previousWateredPicker;
@@ -390,6 +399,8 @@ class _NewPlantState extends State<NewPlant> {
                             tempPlant.sampleID = sampleSelect;
                             tempPlant.isDelayed = isPlantDelayed;
                             tempPlant.waterMode = waterMode;
+                            tempPlant.nextWater =
+                                tempPlant.suggestedWaterDate();
                           }
                           //common to both edit and new plant
                           plantList.plantList[plantList.plantList.length - 1]
@@ -398,7 +409,8 @@ class _NewPlantState extends State<NewPlant> {
                                   .plantList[plantList.plantList.length - 1]
                                   .suggestedWaterDate();
                           plantList.reindexZones(zoneList.zoneList);
-                          saveDisk(plantList, zoneList, sampleList);
+                          saveDisk(
+                              plantList, zoneList, sampleList, widget.database);
                           if (editMode == true) {
                             widget.notifyParent();
                             Navigator.pop(context);
