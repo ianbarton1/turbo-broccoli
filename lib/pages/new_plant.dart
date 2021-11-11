@@ -13,7 +13,7 @@ class NewPlant extends StatefulWidget {
   bool editMode = false;
   Plant plant;
   final Function() notifyParent;
-  final Database database;
+  Database database;
   NewPlant({this.plant, this.notifyParent, this.database}) {
     if (plant != null) editMode = true;
   }
@@ -93,6 +93,13 @@ class _NewPlantState extends State<NewPlant> {
     dbwHighController.dispose();
     dbwLowController.dispose();
     super.dispose();
+    print("New Plant (Exit) = ${widget.database}");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print("New Plant = ${widget.database}");
   }
 
   @override
@@ -360,32 +367,32 @@ class _NewPlantState extends State<NewPlant> {
                         if (_formKey.currentState.validate()) {
                           if (editMode != true) {
                             plantList.addNew(new Plant(
-                              uid: int.parse(uidController.text),
-                              name: nameController.text,
-                              previousWater: previousWateredPicker,
-                              lastWatered: lastWateredPicker,
-                              activeWatered: lastWateredPicker,
-                              dbw: lastWateredPicker
-                                  .difference(previousWateredPicker)
-                                  .inDays,
-                              multiplier: 0.75,
-                              section: 0,
-                              zone: 0,
-                              nextWater: DateTime(2020, 11, 15),
-                              checkStatus: 0,
-                              homeZone: newHomeZone,
-                              dbwLow: _rangeValues.start.round(),
-                              dbwHigh: _rangeValues.end.round(),
-                              waterMode: waterMode,
-                              isDelayed: isPlantDelayed,
-                              delayFactor: 2,
-                              isPlantDynamic: isPlantDynamic,
-                              currentActivitySampleCount: 0,
-                              currentActivitySum: 0,
-                              lastActivitySampleCount: 0,
-                              lastActivitySum: 0,
-                              sampleID: sampleSelect,
-                            ));
+                                uid: int.parse(uidController.text),
+                                name: nameController.text,
+                                previousWater: previousWateredPicker,
+                                lastWatered: lastWateredPicker,
+                                activeWatered: lastWateredPicker,
+                                dbw: lastWateredPicker
+                                    .difference(previousWateredPicker)
+                                    .inDays,
+                                multiplier: 0.75,
+                                section: 0,
+                                zone: 0,
+                                nextWater: DateTime(2020, 11, 15),
+                                checkStatus: 0,
+                                homeZone: newHomeZone,
+                                dbwLow: _rangeValues.start.round(),
+                                dbwHigh: _rangeValues.end.round(),
+                                waterMode: waterMode,
+                                isDelayed: isPlantDelayed,
+                                delayFactor: 2,
+                                isPlantDynamic: isPlantDynamic,
+                                currentActivitySampleCount: 0,
+                                currentActivitySum: 0,
+                                lastActivitySampleCount: 0,
+                                lastActivitySum: 0,
+                                sampleID: sampleSelect,
+                                database: widget.database));
                           } else {
                             print('edit mode');
                             tempPlant.name = nameController.text;
@@ -401,6 +408,8 @@ class _NewPlantState extends State<NewPlant> {
                             tempPlant.waterMode = waterMode;
                             tempPlant.nextWater =
                                 tempPlant.suggestedWaterDate();
+
+                            tempPlant.database = widget.database;
                           }
                           //common to both edit and new plant
                           plantList.plantList[plantList.plantList.length - 1]
@@ -417,7 +426,7 @@ class _NewPlantState extends State<NewPlant> {
                           } else {
                             Navigator.of(context)
                                 .popUntil((route) => route.isFirst);
-                            Navigator.pushReplacementNamed(context, '/home');
+                            // Navigator.pushReplacementNamed(context, '/home',);
                           }
                         }
                       },

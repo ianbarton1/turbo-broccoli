@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
@@ -13,8 +14,9 @@ import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class BackupManager extends StatefulWidget {
   final Function() notifyParent;
+  Database database;
 
-  BackupManager({this.notifyParent});
+  BackupManager(this.database, {this.notifyParent});
 
   @override
   _BackupManagerState createState() => _BackupManagerState();
@@ -59,7 +61,8 @@ class _BackupManagerState extends State<BackupManager> {
                       tempData = jsonDecode(plantsBackup.text);
                       switch (backupMode) {
                         case ('Plants'):
-                          plantList = jsonToCollection(tempData);
+                          plantList =
+                              jsonToCollection(tempData, widget.database);
                           break;
                         case ('Zones'):
                           zoneList.zoneList = tempData.cast<String>().toList();

@@ -90,45 +90,45 @@ Future<SampleMap> sampleFromDisk() async {
 
 Future<PlantCollection> fromDisk(Database database) async {
   List<dynamic> temp = await loadDisk(database);
-  return jsonToCollection(temp);
+  return jsonToCollection(temp, database);
 }
 
-PlantCollection jsonToCollection(List<dynamic> temp) {
+PlantCollection jsonToCollection(List<dynamic> temp, Database database) {
   PlantCollection result = new PlantCollection();
   temp.forEach((e) {
     result.addNew(new Plant(
-      dbw: e['dbw'],
-      uid: e['uid'],
-      name: e['name'],
-      previousWater: DateTime.parse(e['previousWater']),
-      lastWatered: DateTime.parse(e['lastWatered']),
-      nextWater: DateTime.parse(e['nextWater']),
-      multiplier: e['multiplier'],
-      checkStatus: e['checkStatus'],
-      section: e['section'],
-      zone: e['zone'],
-      activeWatered: DateTime.parse(e['activeWatered']),
-      homeZone: e['homeZone'],
-      dbwHigh: e['dbwHigh'],
-      dbwLow: e['dbwLow'],
-      waterMode: (e['waterMode'].toString() == "true" || e['waterMode'] == 1)
-          ? true
-          : false,
-      delayFactor: e['delayFactor'],
-      isDelayed: (e['isDelayed'].toString() == "true" || e['isDelayed'] == 1)
-          ? true
-          : false,
-      currentActivitySampleCount: e['currentActivitySampleCount'],
-      currentActivitySum: e['currentActivitySum'],
-      isPlantDynamic:
-          (e['isPlantDynamic'].toString() == "true" || e['isPlantDynamic'] == 1)
-              ? true
-              : false,
-      lastActivitySampleCount: e['lastActivitySampleCount'],
-      lastActivitySum: e['lastActivitySum'],
-      sampleID: e['sampleID'],
-      loadBalancingOffset: e['loadBalancingOffset'],
-    ));
+        dbw: e['dbw'],
+        uid: e['uid'],
+        name: e['name'],
+        previousWater: DateTime.parse(e['previousWater']),
+        lastWatered: DateTime.parse(e['lastWatered']),
+        nextWater: DateTime.parse(e['nextWater']),
+        multiplier: e['multiplier'],
+        checkStatus: e['checkStatus'],
+        section: e['section'],
+        zone: e['zone'],
+        activeWatered: DateTime.parse(e['activeWatered']),
+        homeZone: e['homeZone'],
+        dbwHigh: e['dbwHigh'],
+        dbwLow: e['dbwLow'],
+        waterMode: (e['waterMode'].toString() == "true" || e['waterMode'] == 1)
+            ? true
+            : false,
+        delayFactor: e['delayFactor'],
+        isDelayed: (e['isDelayed'].toString() == "true" || e['isDelayed'] == 1)
+            ? true
+            : false,
+        currentActivitySampleCount: e['currentActivitySampleCount'],
+        currentActivitySum: e['currentActivitySum'],
+        isPlantDynamic: (e['isPlantDynamic'].toString() == "true" ||
+                e['isPlantDynamic'] == 1)
+            ? true
+            : false,
+        lastActivitySampleCount: e['lastActivitySampleCount'],
+        lastActivitySum: e['lastActivitySum'],
+        sampleID: e['sampleID'],
+        loadBalancingOffset: e['loadBalancingOffset'],
+        database: database));
   });
 
   return result;

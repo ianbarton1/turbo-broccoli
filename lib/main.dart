@@ -143,6 +143,7 @@ class _HomeState extends State<Home> {
               },
             ),
         '/backup_manager': (context) => BackupManager(
+              widget.database,
               notifyParent: () {
                 setState(() {});
               },
@@ -234,6 +235,7 @@ class _HomeState extends State<Home> {
                                           updateParent: () {
                                             updateParent();
                                           },
+                                          showAppBar: false,
                                           database: widget.database,
                                           plant: plantList.plantList[index]),
                                     ),
@@ -293,10 +295,7 @@ class _HomeState extends State<Home> {
             },
             backgroundColor: Colors.green[400],
             tooltip: 'Action all changes and save.',
-            child: Text(
-              plantList.liveCount().toString(),
-              style: TextStyle(fontSize: 20),
-            ),
+            child: FaIcon(FontAwesomeIcons.save),
           ),
         ),
       ),

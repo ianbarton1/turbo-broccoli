@@ -43,33 +43,36 @@ class Plant {
   String homeZone;
   int loadBalancingOffset = 0;
   bool _holidayMode = false;
+  Image plantImage;
+  Database database;
+  dynamic tempImage;
 
-  Plant({
-    this.uid,
-    this.name,
-    this.previousWater,
-    this.lastWatered,
-    this.nextWater,
-    this.dbw,
-    this.multiplier,
-    this.section,
-    this.zone,
-    this.checkStatus,
-    this.activeWatered,
-    this.homeZone,
-    this.dbwLow,
-    this.dbwHigh,
-    this.waterMode,
-    this.delayFactor,
-    this.isDelayed,
-    this.currentActivitySampleCount,
-    this.currentActivitySum,
-    this.isPlantDynamic,
-    this.lastActivitySampleCount,
-    this.lastActivitySum,
-    this.sampleID,
-    this.loadBalancingOffset,
-  }) {
+  Plant(
+      {this.uid,
+      this.name,
+      this.previousWater,
+      this.lastWatered,
+      this.nextWater,
+      this.dbw,
+      this.multiplier,
+      this.section,
+      this.zone,
+      this.checkStatus,
+      this.activeWatered,
+      this.homeZone,
+      this.dbwLow,
+      this.dbwHigh,
+      this.waterMode,
+      this.delayFactor,
+      this.isDelayed,
+      this.currentActivitySampleCount,
+      this.currentActivitySum,
+      this.isPlantDynamic,
+      this.lastActivitySampleCount,
+      this.lastActivitySum,
+      this.sampleID,
+      this.loadBalancingOffset,
+      this.database}) {
     if (this.dbwLow == null) this.dbwLow = 1;
     if (this.dbwHigh == null) this.dbwHigh = 100;
     if (this.isPlantDynamic == null) this.isPlantDynamic = false;
@@ -83,6 +86,16 @@ class Plant {
     if (this.delayFactor == null) delayFactor = 2;
     if (this.dbw == null) dbw = 7;
     if (this.loadBalancingOffset == null) loadBalancingOffset = 0;
+
+    getDatabaseImage();
+  }
+
+  Future<void> getDatabaseImage() async {
+    tempImage = await database.query("plant_images",
+        columns: ["image"], where: 'plantid = ?', whereArgs: [uid], limit: 1);
+
+    tempImage = tempImage[0]['image'];
+    plantImage = new Image.memory(tempImage);
   }
 
   DateTime safeDateTime(DateTime unsafeDateTime) {
