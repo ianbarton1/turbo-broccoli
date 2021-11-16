@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
@@ -101,6 +102,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
                       selectedSample.updateSample(
                           int.parse(newSampleMaxWeight.text), plantList);
                       widget.notifyParent();
+                      Phoenix.rebirth(context);
                     });
                     return Navigator.of(context).pop(true);
                   },

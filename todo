@@ -9,4 +9,23 @@
 -- Plant Query/ Finder
 -- BugFix: UID check on Add Plant/Edit Plant always returns OK, should return whether the UID is ok instead. DONE
     --both bugs have been squashed. rather convoluted way of achieving this but it's ok DONE
--- View Plant Screen needs to be better presented/ organised
+-- View Plant Screen needs to be better presented/ organised CONTINUAL more detail please
+
+> 2021/2022 improvements to be made/ ideas to be fleshed out
+-- Photograph Improvements
+    -- Date Taken for Photographs
+    -- Multiple Photographs for Each Plant
+    -- Photograph Expiry
+-- Data Improvements
+    -- Where was plant acquired?
+    -- When was plant acquired?
+    -- Soil mix?
+-- Need a menu screen
+    -- Access holiday mode
+    -- Delete plant mode?
+-- Proper Backup/Restore System integrated with Database (more important if were to have more data)
+-- Note System? LOW
+-- Feeding System LOW
+-- Load Balancing LOW
+-- BUGFIX NEEDED: Dynamic Watering and Outdoor Plants: Wonky Calculations cause plants to have negative DBW and become persistent annoyances being put forward for checking every DAY even during heavy rain!
+-- Change from sliders to number entry for Min/Max DBW limits

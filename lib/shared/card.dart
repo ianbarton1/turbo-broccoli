@@ -126,42 +126,42 @@ class _PlantCardState extends State<PlantCard> {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        child: Column(
-                          children: [
-                            Text(
-                              'Last Watered on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.lastWatered)}',
-                              overflow: TextOverflow.visible,
-                              style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 15,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                            Text(
-                              'Next check due on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.nextWater)}',
-                              overflow: TextOverflow.visible,
-                              style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 15,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                            Text(
-                              'Home Zone: ${widget.tommy.homeZone}',
-                              overflow: TextOverflow.visible,
-                              style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 15,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  ],
-                )
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: Container(
+                //         child: Column(
+                //           children: [
+                //             Text(
+                //               'Last Watered on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.lastWatered)}',
+                //               overflow: TextOverflow.visible,
+                //               style: TextStyle(
+                //                   color: textColor,
+                //                   fontSize: 15,
+                //                   fontStyle: FontStyle.normal),
+                //             ),
+                //             Text(
+                //               'Next check due on: ${DateFormat('yyyy-MM-dd').format(widget.tommy.nextWater)}',
+                //               overflow: TextOverflow.visible,
+                //               style: TextStyle(
+                //                   color: textColor,
+                //                   fontSize: 15,
+                //                   fontStyle: FontStyle.normal),
+                //             ),
+                //             Text(
+                //               'Home Zone: ${widget.tommy.homeZone}',
+                //               overflow: TextOverflow.visible,
+                //               style: TextStyle(
+                //                   color: textColor,
+                //                   fontSize: 15,
+                //                   fontStyle: FontStyle.normal),
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     )
+                //   ],
+                // )
               ],
             ),
             subtitle: Column(
@@ -169,30 +169,30 @@ class _PlantCardState extends State<PlantCard> {
                 Container(
                     child: Row(
                   children: <Widget>[
-                    Expanded(
-                      child: IconButton(
-                        iconSize: 45,
-                        icon: (widget.tommy.isDelayed &&
-                                widget.tommy.waterMode == false)
-                            ? FaIcon(FontAwesomeIcons.calendarCheck,
-                                color: textColor)
-                            : FaIcon(FontAwesomeIcons.check, color: textColor),
-                        onPressed: () {
-                          setState(() {
-                            // widget.tommy.checkStatus = 2;
-                            if (!widget.tommy.isLocked())
-                              plantList.plantList[widget.index].checkStatus =
-                                  plantList.plantList[widget.index]
-                                              .checkStatus ==
-                                          2
-                                      ? 0
-                                      : 2;
-                            saveDisk(plantList, zoneList, sampleList,
-                                widget.database);
-                          });
-                        },
-                      ),
-                    ),
+                    // Expanded(
+                    //   child: IconButton(
+                    //     iconSize: 45,
+                    //     icon: (widget.tommy.isDelayed &&
+                    //             widget.tommy.waterMode == false)
+                    //         ? FaIcon(FontAwesomeIcons.calendarCheck,
+                    //             color: textColor)
+                    //         : FaIcon(FontAwesomeIcons.check, color: textColor),
+                    //     onPressed: () {
+                    //       setState(() {
+                    //         // widget.tommy.checkStatus = 2;
+                    //         if (!widget.tommy.isLocked())
+                    //           plantList.plantList[widget.index].checkStatus =
+                    //               plantList.plantList[widget.index]
+                    //                           .checkStatus ==
+                    //                       2
+                    //                   ? 0
+                    //                   : 2;
+                    //         saveDisk(plantList, zoneList, sampleList,
+                    //             widget.database);
+                    //       });
+                    //     },
+                    //   ),
+                    // ),
                     Expanded(
                       child: IconButton(
                         iconSize: 40,
@@ -208,32 +208,32 @@ class _PlantCardState extends State<PlantCard> {
                         },
                       ),
                     ),
-                    Container(
-                      child: (widget.tommy.isDelayed == false ||
-                              widget.tommy.waterMode == false)
-                          ? Expanded(
-                              child: IconButton(
-                                iconSize: 45,
-                                icon: FaIcon(FontAwesomeIcons.ban,
-                                    color: textColor),
-                                onPressed: () {
-                                  setState(() {
-                                    if (!widget.tommy.isLocked())
-                                      plantList.plantList[widget.index]
-                                          .checkStatus = plantList
-                                                  .plantList[widget.index]
-                                                  .checkStatus ==
-                                              1
-                                          ? 0
-                                          : 1;
-                                    saveDisk(plantList, zoneList, sampleList,
-                                        widget.database);
-                                  });
-                                },
-                              ),
-                            )
-                          : Container(),
-                    ),
+                    // Container(
+                    //   child: (widget.tommy.isDelayed == false ||
+                    //           widget.tommy.waterMode == false)
+                    //       ? Expanded(
+                    //           child: IconButton(
+                    //             iconSize: 45,
+                    //             icon: FaIcon(FontAwesomeIcons.ban,
+                    //                 color: textColor),
+                    //             onPressed: () {
+                    //               setState(() {
+                    //                 if (!widget.tommy.isLocked())
+                    //                   plantList.plantList[widget.index]
+                    //                       .checkStatus = plantList
+                    //                               .plantList[widget.index]
+                    //                               .checkStatus ==
+                    //                           1
+                    //                       ? 0
+                    //                       : 1;
+                    //                 saveDisk(plantList, zoneList, sampleList,
+                    //                     widget.database);
+                    //               });
+                    //             },
+                    //           ),
+                    //         )
+                    //       : Container(),
+                    // ),
                     widget.allowDelete
                         ? FlatButton(
                             onLongPress: () {

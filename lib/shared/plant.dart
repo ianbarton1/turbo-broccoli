@@ -44,6 +44,7 @@ class Plant {
   int loadBalancingOffset = 0;
   bool _holidayMode = false;
   Image plantImage;
+  DateTime plantDateTime;
   Database database;
   dynamic tempImage;
 
@@ -92,9 +93,14 @@ class Plant {
 
   Future<void> getDatabaseImage() async {
     tempImage = await database.query("plant_images",
-        columns: ["image"], where: 'plantid = ?', whereArgs: [uid], limit: 1);
-
-    tempImage = tempImage[0]['image'];
+        columns: ["image", "date_time"],
+        where: 'plantid = ?',
+        whereArgs: [uid],
+        limit: 20,
+        orderBy: "date_time DESC");
+    plantDateTime = new DateTime.fromMillisecondsSinceEpoch(
+        (tempImage[2]['date_time'] * 1000));
+    tempImage = tempImage[2]['image'];
     plantImage = new Image.memory(tempImage);
   }
 

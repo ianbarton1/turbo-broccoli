@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
@@ -420,13 +421,14 @@ class _NewPlantState extends State<NewPlant> {
                           plantList.reindexZones(zoneList.zoneList);
                           saveDisk(
                               plantList, zoneList, sampleList, widget.database);
+
                           if (editMode == true) {
                             widget.notifyParent();
                             Navigator.pop(context);
                           } else {
                             Navigator.of(context)
                                 .popUntil((route) => route.isFirst);
-                            // Navigator.pushReplacementNamed(context, '/home',);
+                            Phoenix.rebirth(context);
                           }
                         }
                       },
