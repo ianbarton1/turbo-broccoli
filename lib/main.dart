@@ -1,117 +1,393 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:math';
 
-void main() {
-  runApp(MyApp());
+import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:turbo_broccoli/pages/backup.dart';
+import 'package:turbo_broccoli/pages/new_plant.dart';
+import 'package:turbo_broccoli/pages/plant_info.dart';
+import 'package:turbo_broccoli/pages/sample_manager.dart';
+import 'package:turbo_broccoli/pages/sample_recorder.dart';
+import 'package:turbo_broccoli/pages/zone_manager.dart';
+import 'package:turbo_broccoli/shared/card.dart';
+import 'package:turbo_broccoli/shared/drawer.dart';
+import 'package:turbo_broccoli/shared/file_ops.dart';
+import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/plant_collection.dart';
+import 'package:turbo_broccoli/shared/sample.dart';
+import 'package:turbo_broccoli/shared/sample_map.dart';
+import 'package:turbo_broccoli/shared/zone.dart';
+import 'dart:developer';
+
+import 'package:turbo_broccoli/shared/zone_map.dart';
+
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+PlantCollection plantList;
+ZoneMap zoneList;
+SampleMap sampleList;
+Random rng = new Random();
+bool _showAll = true;
+bool _allowDelete = false;
+bool _holidayMode = false;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final Database database = await openDatabase(
+      join(await getDatabasesPath(), 'turbo_brocolli.db'),
+      onCreate: (db, version) {
+        // Run the CREATE TABLE statement on the database.
+        db.execute(
+          'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
+        );
+        if (version == 1) {
+          db.execute(
+            'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, FOREIGN KEY(plantid) REFERENCES plants(uid))',
+          );
+        } else {
+          db.execute(
+            'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, date_time INTEGER, image BLOB, FOREIGN KEY(plantid) REFERENCES plants(uid))',
+          );
+        }
+        return;
+      },
+      version: 2,
+      onOpen: (db) {
+        db.execute(
+          'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
+        );
+        return db.execute(
+          'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, date_time INTEGER, FOREIGN KEY(plantid) REFERENCES plants(uid))',
+        );
+      },
+      onUpgrade: (db, oldVersion, newVersion) {
+        if (oldVersion == 1) {
+          db.execute("ALTER TABLE plant_images ADD COLUMN date_time INTEGER;");
+        }
+      });
+
+  runApp(Phoenix(
+    child: Home(
+      title: 'Turbo Broccoli',
+      database: database,
+    ),
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class Home extends StatefulWidget {
+  Home({Key key, this.title, this.database}) : super(key: key);
+  final String title;
+  final Database database;
+
   @override
+  _HomeState createState() => _HomeState();
+
   Widget build(BuildContext context) {
+    plantList.orderCollection(_showAll);
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => Home(
+              title: 'Turbo Broccoli',
+              database: database,
+            ),
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class _HomeState extends State<Home> {
+  void populateList() async {
+    // SharedPreferences debug = await SharedPreferences.getInstance();
+    // await debug.clear();
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+    plantList = await fromDisk(widget.database);
+    zoneList = await loadZones();
+    sampleList = await sampleFromDisk();
+    if (plantList == null) plantList = new PlantCollection();
+    if (zoneList == null) zoneList = new ZoneMap();
+    if (sampleList == null) sampleList = new SampleMap();
+    setState(() {});
+  }
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  void updateParent() {
+    setState(() {});
+    print("update main");
+  }
 
-  final String title;
+  int liveCount = 0;
+  PageController _wateringSessionController =
+      new PageController(initialPage: 0, keepPage: true, viewportFraction: 1);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  void initState() {
+    super.initState();
+    if (plantList == null) populateList();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    if (plantList != null) {
+      plantList.orderCollection(_showAll);
+      liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
+    }
+
+    return MaterialApp(
+      routes: {
+        '/home': (context) => Home(
+              title: 'Turbo Broccoli',
+            ),
+        '/add_new': (context) => NewPlant(
+              database: widget.database,
+            ),
+        '/zone_manager': (context) => ZoneManager(
+              notifyParent: () {
+                setState(() {});
+              },
+            ),
+        '/sample_manager': (context) => SampleManager(
+              notifyParent: () {
+                setState(() {});
+              },
+            ),
+        '/sample_recorder': (context) => SampleRecorder(
+              notifyParent: () {
+                setState(() {});
+                saveDisk(plantList, zoneList, sampleList, widget.database);
+              },
+            ),
+        '/backup_manager': (context) => BackupManager(
+              widget.database,
+              notifyParent: () {
+                setState(() {});
+              },
+            ),
+      },
+      title: 'Turbo Broccoli',
+      theme: ThemeData(
+        fontFamily: 'Roboto',
+        primaryColor: Colors.green[900],
+        accentColor: Colors.green[450],
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        brightness: Brightness.dark,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+      home: Builder(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(
+              "Turbo Broccoli ($liveCount)",
+              style: TextStyle(fontSize: 18),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+            actions: [
+              IconButton(
+                  color: (sampleList != null && sampleList.needsUpdate())
+                      ? Colors.redAccent
+                      : Colors.green,
+                  icon: FaIcon(FontAwesomeIcons.weight),
+                  onPressed: () {
+                    setState(() {
+                      if (sampleList.needsUpdate()) {
+                        Navigator.pushNamed(context, '/sample_recorder');
+                      }
+                    });
+                  }),
+              //holiday button (temp disabled)
+              // InkWell(
+              //   onLongPress: () {
+              //     setState(() {
+              //       _holidayMode ^= true;
+              //       plantList.changeHolidayMode(_holidayMode);
+              //     });
+              //   },
+              //   child: IconButton(
+              //       color: (_holidayMode) ? Colors.yellow : Colors.grey,
+              //       icon: FaIcon(FontAwesomeIcons.planeDeparture),
+              //       onPressed: () {}),
+              // ),
+              InkWell(
+                onLongPress: () {
+                  setState(() {
+                    _allowDelete ^= true;
+                  });
+                },
+                child: IconButton(
+                    color: _allowDelete ? Colors.red : Colors.green,
+                    icon: _allowDelete
+                        ? FaIcon(FontAwesomeIcons.trash)
+                        : FaIcon(FontAwesomeIcons.trash),
+                    onPressed: () {}),
+              ),
+              IconButton(
+                  icon: _showAll
+                      ? FaIcon(FontAwesomeIcons.eye)
+                      : FaIcon(FontAwesomeIcons.lowVision),
+                  onPressed: () {
+                    setState(() {
+                      _showAll ^= true;
+                    });
+                  })
+            ],
+          ),
+          drawer: Drawer(
+            child: MainMenu(notifyParent: () {
+              setState() {}
+            }),
+          ),
+          body: Center(
+              child: liveCount > 0
+                  ? (!_showAll
+                      ? PageView.builder(
+                          controller: _wateringSessionController,
+                          itemCount: plantList != null
+                              ? min(plantList.plantList.length, liveCount) + 2
+                              : 0,
+                          itemBuilder: (context, index) {
+                            return plantList != null
+                                ? (index <
+                                            min(plantList.plantList.length,
+                                                    liveCount) +
+                                                1 &&
+                                        index > 0)
+                                    ? InkWell(
+                                        child: Container(
+                                          height: 1000,
+                                          child: PlantInfo(
+                                              updateParent: () {
+                                                updateParent();
+                                              },
+                                              showAppBar: false,
+                                              database: widget.database,
+                                              plant: plantList
+                                                  .plantList[index - 1]),
+                                        ),
+                                        onTap: () {},
+                                      )
+                                    : Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Text("Finish",
+                                                style: TextStyle(fontSize: 60)),
+                                            SizedBox(height: 50),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                IconButton(
+                                                    iconSize: 60,
+                                                    color: Colors.red[400],
+                                                    onPressed: () {
+                                                      _wateringSessionController.animateToPage(
+                                                          _wateringSessionController
+                                                                      .page
+                                                                      .toInt() ==
+                                                                  0
+                                                              ? min(
+                                                                  plantList
+                                                                      .plantList
+                                                                      .length,
+                                                                  liveCount)
+                                                              : 1,
+                                                          curve:
+                                                              Curves.decelerate,
+                                                          duration: Duration(
+                                                              milliseconds:
+                                                                  300));
+                                                    },
+                                                    icon: FaIcon(
+                                                      index == 0
+                                                          ? FontAwesomeIcons
+                                                              .angleDoubleRight
+                                                          : FontAwesomeIcons
+                                                              .angleDoubleLeft,
+                                                      size: 60.00,
+                                                    )),
+                                                SizedBox(
+                                                  width: 50,
+                                                ),
+                                                IconButton(
+                                                    iconSize: 60,
+                                                    color: Colors.green[400],
+                                                    onPressed: () {
+                                                      print(
+                                                          'this button works');
+                                                      plantList.actionChanges();
+                                                      plantList.orderCollection(
+                                                          _showAll);
+                                                      saveDisk(
+                                                          plantList,
+                                                          zoneList,
+                                                          sampleList,
+                                                          widget.database);
+                                                      _wateringSessionController
+                                                          .animateToPage(1,
+                                                              curve: Curves
+                                                                  .decelerate,
+                                                              duration: Duration(
+                                                                  milliseconds:
+                                                                      300));
+                                                      setState(() {});
+                                                    },
+                                                    icon: FaIcon(
+                                                      FontAwesomeIcons.thumbsUp,
+                                                      size: 60.00,
+                                                    )),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                : Center();
+                          })
+                      : ListView.builder(
+                          itemCount: plantList != null
+                              ? min(plantList.plantList.length, liveCount)
+                              : 0,
+                          itemBuilder: (context, index) {
+                            return plantList != null
+                                ? InkWell(
+                                    child: Container(
+                                      child: PlantCard(
+                                        tommy: plantList.plantList[index],
+                                        index: index,
+                                        allowDelete: _allowDelete,
+                                        notifyParent: () {
+                                          setState(() {});
+                                        },
+                                        database: widget.database,
+                                      ),
+                                    ),
+                                    onTap: () {},
+                                  )
+                                : Center();
+                          }))
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.smileWink,
+                          size: 150,
+                          color: Colors.lightGreen,
+                        ),
+                        SizedBox(height: 50),
+                        Text(
+                          'Nothing to do now',
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: Colors.lightGreen,
+                          ),
+                          overflow: TextOverflow.visible,
+                        )
+                      ],
+                    )),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

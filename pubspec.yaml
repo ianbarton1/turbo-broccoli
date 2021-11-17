@@ -1,5 +1,5 @@
 name: turbo_broccoli
-description: A new Flutter project.
+description: A plant watering tracking system to help water large collections of plants
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -23,7 +23,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  shared_preferences: ^0.5.12+4
+  intl: ^0.16.1
+  font_awesome_flutter: ^8.10.0
+  dart_date: ^1.0.7
+  badges: ^1.1.4
+  sqflite:
+  path:
+  image_picker: ^0.6.7+22
+  flutter_phoenix: "^1.0.0"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
