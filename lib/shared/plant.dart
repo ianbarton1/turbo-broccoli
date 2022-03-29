@@ -1,10 +1,12 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:dart_date/dart_date.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:turbo_broccoli/shared/plant_image.dart';
 
 class Plant {
   int uid;
@@ -43,8 +45,8 @@ class Plant {
   String homeZone;
   int loadBalancingOffset = 0;
   bool _holidayMode = false;
-  Image plantImage;
-  DateTime plantDateTime;
+  List<Image> plantImage = [];
+  List<DateTime> plantDateTime = [];
   Database database;
   dynamic tempImage;
 
@@ -92,21 +94,58 @@ class Plant {
   }
 
   Future<void> getDatabaseImage() async {
+    plantImage = [];
+    plantDateTime = [];
     tempImage = await database.query("plant_images",
         columns: ["image", "date_time"],
         where: 'plantid = ?',
         whereArgs: [uid],
         limit: 20,
         orderBy: "date_time DESC");
-    plantDateTime = new DateTime.fromMillisecondsSinceEpoch(
-        (tempImage[2]['date_time'] * 1000));
-    tempImage = tempImage[2]['image'];
-    plantImage = new Image.memory(tempImage);
+
+    // plantImage = new PlantImage(
+    //     plantImage: Image.memory(tempImage[0]['image']),
+    //     plantdatetime: DateTime.fromMillisecondsSinceEpoch(
+    //         (tempImage[0]['date_time'] * 1000)));
+
+    tempImage.forEach((e) {
+      plantImage.add(new Image.memory(e['image']));
+      if (e['date_time'] != null)
+        plantDateTime.add(
+            new DateTime.fromMillisecondsSinceEpoch((e['date_time'] * 1000)));
+      else
+        plantDateTime.add(null);
+      print("adding image");
+    });
+
+    // tempImage['date_time'].forEach((int currentDateTime) {
+    //   plantDateTime.add(
+    //       new DateTime.fromMillisecondsSinceEpoch((currentDateTime * 1000)));
+    // });
+    // plantImage = new Image.memory(tempImage[0]['image']);
+    // plantDateTime =
+    //     DateTime.fromMillisecondsSinceEpoch((tempImage[0]['date_time'] * 1000));
+  }
+
+  Future<void> imageHistory() async {}
+
+  Future<void> removePictures() async {
+    await database
+        .delete("plant_images", where: "plantid = ?", whereArgs: [uid]);
   }
 
   DateTime safeDateTime(DateTime unsafeDateTime) {
     return DateTime(
         unsafeDateTime.year, unsafeDateTime.month, unsafeDateTime.day);
+  }
+
+  bool filterDatesBetween(DateTime selectedDate) {
+    // startDate = safeDateTime(startDate);
+    //  selectedDate = safeDateTime(selectedDate);
+
+    if (!scheduledDate().isAfter(selectedDate)) return true;
+
+    return false;
   }
 
   void setWateringDates() {

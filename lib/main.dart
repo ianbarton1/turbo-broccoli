@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/pages/backup.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
@@ -19,12 +21,15 @@ import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
 import 'package:turbo_broccoli/shared/sample_map.dart';
 import 'package:turbo_broccoli/shared/zone.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:developer';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:wakelock/wakelock.dart';
 
 PlantCollection plantList;
 ZoneMap zoneList;
@@ -34,10 +39,51 @@ bool _showAll = true;
 bool _allowDelete = false;
 bool _holidayMode = false;
 
+void runBackup(String databasePath) async {
+  try {
+    File file = File(databasePath);
+    File backup = await File(
+            '/storage/emulated/0/Documents/TurboBroccoli/backups/backup-${DateFormat('yMdHms').format(DateTime.now())}.db')
+        .create(recursive: true);
+
+    final buffer = await file.readAsBytes();
+    backup = await backup.writeAsBytes(buffer);
+
+    print("backup should be done?");
+  } catch (e) {
+    print("error in backup process");
+  }
+}
+
+Future<bool> requestPermissions() async {
+  var status = await Permission.storage.status;
+
+  if (!status.isGranted) {
+    await Permission.storage.request();
+  }
+
+  var status1 = await Permission.manageExternalStorage.status;
+  if (!status1.isGranted) {
+    await Permission.manageExternalStorage.request();
+  }
+
+  return true;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final Database database = await openDatabase(
-      join(await getDatabasesPath(), 'turbo_brocolli.db'),
+
+  bool permissionCheck = await requestPermissions();
+
+  if (permissionCheck == false) exit(68);
+
+  String documentsPath =
+      '/storage/emulated/0/Documents/TurboBroccoli/turbo_broccoli.db';
+
+  // String documentsPath = "/storage/emulated/0/Download/turbo_broccoli.db";
+
+  runBackup(documentsPath);
+  final Database database = await openDatabase(documentsPath,
       onCreate: (db, version) {
         // Run the CREATE TABLE statement on the database.
         db.execute(
@@ -125,6 +171,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+
     if (plantList == null) populateList();
   }
 
@@ -227,6 +274,7 @@ class _HomeState extends State<Home> {
                   onPressed: () {
                     setState(() {
                       _showAll ^= true;
+                      Wakelock.toggle(enable: !_showAll);
                     });
                   })
             ],

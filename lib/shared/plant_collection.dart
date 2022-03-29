@@ -46,7 +46,14 @@ class PlantCollection {
   void orderCollection(bool sortbyid) {
     if (!sortbyid) {
       plantList.sort((a, b) {
-        int cmp1 = a.scheduledDate().compareTo(b.scheduledDate());
+        // int cmp1 = a.scheduledDate().compareTo(b.scheduledDate());
+        int cmp1 = b
+            .filterDatesBetween(DateTime.now().subtract(Duration(hours: 12)))
+            .toString()
+            .compareTo(a
+                .filterDatesBetween(
+                    DateTime.now().subtract(Duration(hours: 12)))
+                .toString());
         if (cmp1 != 0) return cmp1;
         int cmp = a.section.compareTo(b.section);
         if (cmp != 0) return cmp;
@@ -68,11 +75,17 @@ class PlantCollection {
 
   int dayCount(DateTime selectedDate) {
     int result = 0;
+    selectedDate = selectedDate.subtract(Duration(hours: 12));
     plantList.forEach((element) {
       if (!element.scheduledDate().isAfter(selectedDate)) result++;
     });
     print('dayCount= $result');
     return result;
+  }
+
+  DateTime safeDateTime(DateTime unsafeDateTime) {
+    return DateTime(
+        unsafeDateTime.year, unsafeDateTime.month, unsafeDateTime.day);
   }
 
   //add a new plant to the plantlist

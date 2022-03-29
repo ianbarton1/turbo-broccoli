@@ -9,6 +9,7 @@ import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:turbo_broccoli/shared/plant_image.dart';
 
 class PlantInfo extends StatefulWidget {
   final Plant plant;
@@ -25,13 +26,14 @@ class PlantInfo extends StatefulWidget {
 
 class _PlantInfoState extends State<PlantInfo> {
   ImagePicker picker = new ImagePicker();
-  Image plantPictureReal;
+  List<Image> plantPictureReal;
   List<bool> isSelected = List.filled(3, false);
   List<Color> selectedColorList = [
     Color.fromRGBO(32, 32, 32, 1.0),
     Color.fromRGBO(64, 0, 0, 1.0),
     Color.fromRGBO(0, 0, 64, 1.0)
   ];
+  int pictureIndex = 0;
 
   @override
   void initState() {
@@ -52,7 +54,7 @@ class _PlantInfoState extends State<PlantInfo> {
   }
 
   void updateImage() async {
-    plantPictureReal = await widget.plant.plantImage;
+    plantPictureReal = widget.plant.plantImage;
     setState(() {});
   }
 
@@ -194,7 +196,10 @@ class _PlantInfoState extends State<PlantInfo> {
                           CircleAvatar(
                             foregroundImage: plantPictureReal == null
                                 ? null
-                                : plantPictureReal.image,
+                                : (plantPictureReal.length > 0)
+                                    ? widget
+                                        .plant.plantImage[pictureIndex].image
+                                    : null,
                             radius: MediaQuery.of(context).size.width / 2.5,
                           ),
                           Chip(
@@ -211,7 +216,37 @@ class _PlantInfoState extends State<PlantInfo> {
                         ]),
                       )),
                     ),
-                    Text("Photo Taken on : ${widget.plant.plantDateTime}"),
+                    plantPictureReal.length > 0
+                        ? Text(
+                            "Photo Taken on : ${widget.plant.plantDateTime[pictureIndex]}")
+                        : Container(),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  pictureIndex--;
+                                  if (pictureIndex < 0) pictureIndex = 0;
+                                });
+                              },
+                              icon: FaIcon(FontAwesomeIcons.backward)),
+                          Text(
+                              "${pictureIndex + 1} / ${plantPictureReal.length}"),
+                          IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  pictureIndex++;
+                                  if (pictureIndex >
+                                      plantPictureReal.length - 1)
+                                    pictureIndex = plantPictureReal.length - 1;
+                                });
+                              },
+                              icon: FaIcon(FontAwesomeIcons.forward)),
+                        ],
+                      ),
+                    ),
                     Container(
                       color: Colors.green[900],
                       width: double.infinity,
@@ -285,6 +320,9 @@ class _PlantInfoState extends State<PlantInfo> {
                         }),
                       ),
                     ),
+                    Text(widget.plant
+                        .filterDatesBetween(DateTime.now())
+                        .toString()),
                     ExpansionTile(
                       title: Text("Debug Information"),
                       children: [

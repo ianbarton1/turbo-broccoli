@@ -237,6 +237,8 @@ class _PlantCardState extends State<PlantCard> {
                     widget.allowDelete
                         ? FlatButton(
                             onLongPress: () {
+                              plantList.plantList[widget.index]
+                                  .removePictures();
                               plantList.removePlant(
                                   widget.index, widget.database);
                               print('attempt remove');
