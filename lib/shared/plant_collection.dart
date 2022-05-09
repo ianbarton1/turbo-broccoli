@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class PlantCollection {
-  List<Plant> plantList = List();
+  List<Plant> plantList = [];
   bool _holidayMode = false;
 
   PlantCollection();
@@ -36,9 +37,17 @@ class PlantCollection {
     });
   }
 
-  void removePlant(int index, Database database) {
-    int targetuid = plantList[index].uid;
-    print("attempting to delete" + targetuid.toString());
+  void removePlant(int targetuid, Database database) {
+    // int targetuid = plantList[index].uid;
+
+    int index = plantList.indexWhere((element) => element.uid == targetuid);
+
+    if (index == -1) {
+      debugPrint("No plant with the uid found");
+      return;
+    }
+
+    debugPrint("attempting to delete" + targetuid.toString());
     database.delete("plants", where: "uid = ?", whereArgs: [targetuid]);
     plantList.removeAt(index);
   }
@@ -134,5 +143,12 @@ class PlantCollection {
 
   List<Map<String, dynamic>> toJson() {
     return (plantList.map((e) => e.toJson())).toList();
+  }
+
+  List<Plant> filteredByArea(String areaName) {
+    List<Plant> filteredList =
+        plantList.where((element) => element.homeZone == areaName).toList();
+
+    return filteredList;
   }
 }
