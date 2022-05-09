@@ -168,11 +168,15 @@ class _HomeState extends State<Home> {
   PageController _wateringSessionController =
       new PageController(initialPage: 0, keepPage: true, viewportFraction: 1);
 
+  String areaFilter = "";
+
   @override
   void initState() {
     super.initState();
 
     if (plantList == null) populateList();
+
+    areaFilter = zoneList?.zoneList?.first;
   }
 
   @override
@@ -280,9 +284,7 @@ class _HomeState extends State<Home> {
             ],
           ),
           drawer: Drawer(
-            child: MainMenu(notifyParent: () {
-              setState() {}
-            }),
+            child: MainMenu(notifyParent: () {}),
           ),
           body: Center(
               child: liveCount > 0
@@ -393,28 +395,52 @@ class _HomeState extends State<Home> {
                                       )
                                 : Center();
                           })
-                      : ListView.builder(
-                          itemCount: plantList != null
-                              ? min(plantList.plantList.length, liveCount)
-                              : 0,
-                          itemBuilder: (context, index) {
-                            return plantList != null
-                                ? InkWell(
-                                    child: Container(
-                                      child: PlantCard(
-                                        tommy: plantList.plantList[index],
-                                        index: index,
-                                        allowDelete: _allowDelete,
-                                        notifyParent: () {
-                                          setState(() {});
-                                        },
-                                        database: widget.database,
-                                      ),
-                                    ),
-                                    onTap: () {},
-                                  )
-                                : Center();
-                          }))
+                      : Column(
+                          children: [
+                            DropdownButton<String>(
+                              value: areaFilter,
+                              items: zoneList.zoneList.map((String value) {
+                                return new DropdownMenuItem<String>(
+                                  value: value,
+                                  child: new Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (newValue) {
+                                setState(() {
+                                  areaFilter = newValue;
+                                });
+                              },
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: plantList != null
+                                      ? min(
+                                          plantList
+                                              .filteredByArea(areaFilter)
+                                              .length,
+                                          liveCount)
+                                      : 0,
+                                  itemBuilder: (context, index) {
+                                    return plantList != null
+                                        ? InkWell(
+                                            child: Container(
+                                              child: PlantCard(
+                                                tommy: plantList.filteredByArea(
+                                                    areaFilter)[index],
+                                                index: index,
+                                                allowDelete: _allowDelete,
+                                                notifyParent: updateParent,
+                                                database: widget.database,
+                                              ),
+                                            ),
+                                            onTap: () {},
+                                          )
+                                        : Center();
+                                  }),
+                            ),
+                          ],
+                        ))
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
