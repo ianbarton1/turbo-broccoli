@@ -199,12 +199,13 @@ class _PlantCardState extends State<PlantCard> {
                         icon: FaIcon(FontAwesomeIcons.info, color: textColor),
                         onPressed: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => PlantInfo(
-                                        plant: widget.tommy,
-                                        database: widget.database,
-                                      )));
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => PlantInfo(
+                                            plant: widget.tommy,
+                                            database: widget.database,
+                                          )))
+                              .then((value) => {widget.notifyParent()});
                         },
                       ),
                     ),
@@ -240,7 +241,7 @@ class _PlantCardState extends State<PlantCard> {
                               plantList.plantList[widget.index]
                                   .removePictures();
                               plantList.removePlant(
-                                  widget.index, widget.database);
+                                  widget.tommy.uid, widget.database);
                               print('attempt remove');
                               widget.notifyParent();
                             },
