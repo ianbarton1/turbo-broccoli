@@ -57,6 +57,19 @@ class _PlantInfoState extends State<PlantInfo> {
     setState(() {});
   }
 
+  void fullScreenViewer(ImageProvider image) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return InteractiveViewer(
+              maxScale: 10.0,
+              minScale: 1.000,
+              child: Image(
+                image: image,
+              ));
+        });
+  }
+
   void bottomBar() {
     showModalBottomSheet(
         context: context,
@@ -140,6 +153,11 @@ class _PlantInfoState extends State<PlantInfo> {
                 ],
               )
             : null,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => bottomBar(),
+          child: FaIcon(FontAwesomeIcons.camera),
+          backgroundColor: Colors.lightGreen,
+        ),
         body: AnimatedContainer(
           height: 1000,
           duration: Duration(milliseconds: 500),
@@ -193,7 +211,8 @@ class _PlantInfoState extends State<PlantInfo> {
                       padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Center(
                           child: InkWell(
-                        onTap: () => bottomBar(),
+                        onTap: () => fullScreenViewer(
+                            widget.plant.plantImage[pictureIndex].image),
                         child: Stack(children: [
                           CircleAvatar(
                             foregroundImage: plantPictureReal == null
