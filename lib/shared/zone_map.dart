@@ -1,5 +1,3 @@
-import 'package:turbo_broccoli/shared/zone.dart';
-
 class ZoneMap {
   List<String> zoneList = [];
   // List<Zone> zoneList = List();

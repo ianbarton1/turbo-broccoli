@@ -9,7 +9,6 @@ import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:turbo_broccoli/shared/plant_image.dart';
 
 class PlantInfo extends StatefulWidget {
   final Plant plant;
@@ -124,7 +123,7 @@ class _PlantInfoState extends State<PlantInfo> {
                 centerTitle: true,
                 actions: [
                   IconButton(
-                      icon: FaIcon(FontAwesomeIcons.edit),
+                      icon: FaIcon(FontAwesomeIcons.penToSquare),
                       onPressed: () {
                         print('im doing something');
                         Navigator.push(
@@ -160,12 +159,15 @@ class _PlantInfoState extends State<PlantInfo> {
                         padding: const EdgeInsets.all(4.0),
                         child: Row(
                           children: [
-                            Text(
-                              widget.plant.homeZone,
-                              style: TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.white,
-                                  fontSize: 20),
+                            Expanded(
+                              child: Text(
+                                widget.plant.homeZone,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.white,
+                                    fontSize: 20),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(4.0),

@@ -1,13 +1,9 @@
-import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/main.dart';
-import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/pages/plant_info.dart';
-import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
-import 'package:intl/intl.dart';
 
 class PlantCard extends StatefulWidget {
   final Function() notifyParent;
@@ -236,7 +232,7 @@ class _PlantCardState extends State<PlantCard> {
                     //       : Container(),
                     // ),
                     widget.allowDelete
-                        ? FlatButton(
+                        ? TextButton(
                             onLongPress: () {
                               plantList.plantList[widget.index]
                                   .removePictures();

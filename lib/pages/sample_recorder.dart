@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/date_time_patterns.dart';
-import 'package:intl/intl.dart';
 import 'package:turbo_broccoli/main.dart';
-import 'package:turbo_broccoli/shared/drawer.dart';
-import 'package:turbo_broccoli/shared/file_ops.dart';
-import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
 
 class SampleRecorder extends StatefulWidget {
@@ -33,12 +28,12 @@ class _SampleRecorderState extends State<SampleRecorder> {
             ),
             elevation: 6,
             backgroundColor: Colors.transparent,
-            child: _DialogWithTextField(context),
+            child: _dialogWithTextField(context),
           );
         });
   }
 
-  Widget _DialogWithTextField(BuildContext context) => Container(
+  Widget _dialogWithTextField(BuildContext context) => Container(
         height: 200,
         decoration: BoxDecoration(
           color: Colors.green[900],
@@ -76,7 +71,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                FlatButton(
+                TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -88,8 +83,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
                   ),
                 ),
                 SizedBox(width: 8),
-                RaisedButton(
-                  color: Colors.white,
+                ElevatedButton(
                   child: Text(
                     "Save".toUpperCase(),
                     style: TextStyle(
@@ -165,9 +159,7 @@ class _SampleRecorderState extends State<SampleRecorder> {
                     ]),
               ),
               sampleObj.needsUpdate()
-                  ? FlatButton(
-                      height: 50,
-                      minWidth: 50,
+                  ? TextButton(
                       child: FaIcon(FontAwesomeIcons.plus),
                       onPressed: () {
                         setState(() {

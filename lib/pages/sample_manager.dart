@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/date_time_patterns.dart';
-import 'package:intl/intl.dart';
 import 'package:turbo_broccoli/main.dart';
-import 'package:turbo_broccoli/shared/drawer.dart';
-import 'package:turbo_broccoli/shared/file_ops.dart';
-import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
 
 class SampleManager extends StatefulWidget {
@@ -32,12 +27,12 @@ class _SampleManagerState extends State<SampleManager> {
             ),
             elevation: 6,
             backgroundColor: Colors.transparent,
-            child: _DialogWithTextField(context),
+            child: _dialogWithTextField(context),
           );
         });
   }
 
-  Widget _DialogWithTextField(BuildContext context) => Container(
+  Widget _dialogWithTextField(BuildContext context) => Container(
         height: 310,
         decoration: BoxDecoration(
           color: Colors.green[900],
@@ -92,7 +87,7 @@ class _SampleManagerState extends State<SampleManager> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                FlatButton(
+                TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -104,8 +99,7 @@ class _SampleManagerState extends State<SampleManager> {
                   ),
                 ),
                 SizedBox(width: 8),
-                RaisedButton(
-                  color: Colors.white,
+                TextButton(
                   child: Text(
                     "Save".toUpperCase(),
                     style: TextStyle(
@@ -144,7 +138,7 @@ class _SampleManagerState extends State<SampleManager> {
         appBar: AppBar(
           title: Text('Sample Manager'),
           actions: [
-            FlatButton(
+            TextButton(
                 onPressed: () {
                   _displayDialog();
                 },
@@ -182,9 +176,7 @@ class _SampleManagerState extends State<SampleManager> {
             padding: const EdgeInsets.fromLTRB(20, 8, 8, 8),
             child: Text(item),
           )),
-          FlatButton(
-              height: 50,
-              minWidth: 50,
+          TextButton(
               child: FaIcon(FontAwesomeIcons.trash),
               onPressed: () {
                 setState(() {

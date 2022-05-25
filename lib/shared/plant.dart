@@ -1,12 +1,9 @@
 import 'dart:math';
-import 'dart:typed_data';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:dart_date/dart_date.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:turbo_broccoli/shared/plant_image.dart';
 
 class Plant {
   int uid;
@@ -291,13 +288,20 @@ class Plant {
     }
   }
 
-  void holidayMode(bool enableHolidayMode) {
+  void holidayMode(bool enableHolidayMode, DateTime holidayEndDate) {
     double tempMultiplier = multiplier;
+    holidayEndDate = safeDateTime(holidayEndDate);
     if (enableHolidayMode) {
       if (multiplier < 1.00) multiplier = 1.00;
       nextWater = suggestedWaterDate();
       multiplier = tempMultiplier;
-      _holidayMode = true;
+
+      if (nextWater >= holidayEndDate) {
+        // nextWater = suggestedWaterDate();
+        _holidayMode = false;
+      } else {
+        _holidayMode = true;
+      }
     } else {
       nextWater = suggestedWaterDate();
       _holidayMode = false;

@@ -2,19 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/date_time_patterns.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/main.dart';
-import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
-import 'package:turbo_broccoli/shared/plant.dart';
-import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class BackupManager extends StatefulWidget {
   final Function() notifyParent;
-  Database database;
+  final Database database;
 
   BackupManager(this.database, {this.notifyParent});
 
@@ -54,7 +48,7 @@ class _BackupManagerState extends State<BackupManager> {
           title: Text('Backup/Restore'),
           actions: [
             Builder(builder: (BuildContext context) {
-              return FlatButton(
+              return TextButton(
                   onPressed: () {
                     setState(() {
                       widget.notifyParent();
@@ -76,14 +70,14 @@ class _BackupManagerState extends State<BackupManager> {
                           SnackBar(content: Text('Restored Data')));
                     });
                   },
-                  child: FaIcon(FontAwesomeIcons.sync));
+                  child: FaIcon(FontAwesomeIcons.arrowsRotate));
             })
           ],
         ),
         body: Center(
           child: Column(
             children: [
-              DropdownButton(
+              DropdownButton<String>(
                   value: backupMode,
                   items: [
                     DropdownMenuItem(value: 'Plants', child: Text('Plants')),
@@ -92,7 +86,7 @@ class _BackupManagerState extends State<BackupManager> {
                   ],
                   onChanged: (value) {
                     setState(() {
-                      backupMode = value;
+                      backupMode = value ?? 'null';
                     });
                   }),
               Expanded(

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
 
@@ -6,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:turbo_broccoli/pages/backup.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/pages/plant_info.dart';
@@ -16,18 +14,12 @@ import 'package:turbo_broccoli/pages/zone_manager.dart';
 import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
-import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
-import 'package:turbo_broccoli/shared/sample.dart';
 import 'package:turbo_broccoli/shared/sample_map.dart';
-import 'package:turbo_broccoli/shared/zone.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:developer';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:turbo_broccoli/shared/zone_map.dart';
 
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -186,6 +178,10 @@ class _HomeState extends State<Home> {
       liveCount = _showAll ? plantList.plantList.length : plantList.liveCount();
     }
 
+    //
+    if (!zoneList.zoneList.contains(areaFilter))
+      areaFilter = zoneList?.zoneList?.first;
+
     return MaterialApp(
       routes: {
         '/home': (context) => Home(
@@ -221,7 +217,6 @@ class _HomeState extends State<Home> {
       theme: ThemeData(
         fontFamily: 'Roboto',
         primaryColor: Colors.green[900],
-        accentColor: Colors.green[450],
         visualDensity: VisualDensity.adaptivePlatformDensity,
         brightness: Brightness.dark,
       ),
@@ -229,7 +224,7 @@ class _HomeState extends State<Home> {
         builder: (context) => Scaffold(
           appBar: AppBar(
             title: Text(
-              "Turbo Broccoli ($liveCount)",
+              "($liveCount)",
               style: TextStyle(fontSize: 18),
             ),
             actions: [
@@ -237,7 +232,7 @@ class _HomeState extends State<Home> {
                   color: (sampleList != null && sampleList.needsUpdate())
                       ? Colors.redAccent
                       : Colors.green,
-                  icon: FaIcon(FontAwesomeIcons.weight),
+                  icon: FaIcon(FontAwesomeIcons.weightScale),
                   onPressed: () {
                     setState(() {
                       if (sampleList.needsUpdate()) {
@@ -245,19 +240,38 @@ class _HomeState extends State<Home> {
                       }
                     });
                   }),
-              //holiday button (temp disabled)
-              // InkWell(
-              //   onLongPress: () {
-              //     setState(() {
-              //       _holidayMode ^= true;
-              //       plantList.changeHolidayMode(_holidayMode);
-              //     });
-              //   },
-              //   child: IconButton(
-              //       color: (_holidayMode) ? Colors.yellow : Colors.grey,
-              //       icon: FaIcon(FontAwesomeIcons.planeDeparture),
-              //       onPressed: () {}),
-              // ),
+              // holiday button (temp disabled)
+              InkWell(
+                enableFeedback: true,
+                onLongPress: () {
+                  setState(() {
+                    _holidayMode ^= true;
+                    plantList.changeHolidayMode(_holidayMode, DateTime.now());
+                  });
+                },
+                onDoubleTap: () {
+                  debugPrint("attempt to show date picker");
+                  if (_holidayMode) {
+                    showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(Duration(days: 365)))
+                        .then((value) {
+                      setState(() {
+                        value = value
+                            .add(Duration(days: -1, hours: 18, minutes: 1));
+                        debugPrint("The selected date is $value");
+                        plantList.changeHolidayMode(true, value);
+                      });
+                    });
+                  }
+                },
+                child: IconButton(
+                    color: (_holidayMode) ? Colors.yellow : Colors.grey,
+                    icon: FaIcon(FontAwesomeIcons.planeDeparture),
+                    onPressed: () {}),
+              ),
               InkWell(
                 onLongPress: () {
                   setState(() {
@@ -274,7 +288,7 @@ class _HomeState extends State<Home> {
               IconButton(
                   icon: _showAll
                       ? FaIcon(FontAwesomeIcons.eye)
-                      : FaIcon(FontAwesomeIcons.lowVision),
+                      : FaIcon(FontAwesomeIcons.eyeLowVision),
                   onPressed: () {
                     setState(() {
                       _showAll ^= true;
@@ -353,9 +367,9 @@ class _HomeState extends State<Home> {
                                                     icon: FaIcon(
                                                       index == 0
                                                           ? FontAwesomeIcons
-                                                              .angleDoubleRight
+                                                              .anglesRight
                                                           : FontAwesomeIcons
-                                                              .angleDoubleLeft,
+                                                              .anglesLeft,
                                                       size: 60.00,
                                                     )),
                                                 SizedBox(
@@ -445,7 +459,7 @@ class _HomeState extends State<Home> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         FaIcon(
-                          FontAwesomeIcons.smileWink,
+                          FontAwesomeIcons.faceSmileWink,
                           size: 150,
                           color: Colors.lightGreen,
                         ),

@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/date_time_patterns.dart';
-import 'package:intl/intl.dart';
 import 'package:turbo_broccoli/main.dart';
-import 'package:turbo_broccoli/shared/drawer.dart';
-import 'package:turbo_broccoli/shared/file_ops.dart';
-import 'package:turbo_broccoli/shared/plant.dart';
 
 class ZoneManager extends StatefulWidget {
   final Function() notifyParent;
@@ -30,12 +25,12 @@ class _ZoneManagerState extends State<ZoneManager> {
             ),
             elevation: 6,
             backgroundColor: Colors.transparent,
-            child: _DialogWithTextField(context),
+            child: _dialogWithTextField(context),
           );
         });
   }
 
-  Widget _DialogWithTextField(BuildContext context) => Container(
+  Widget _dialogWithTextField(BuildContext context) => Container(
         height: 210,
         decoration: BoxDecoration(
           color: Colors.green[900],
@@ -74,7 +69,7 @@ class _ZoneManagerState extends State<ZoneManager> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                FlatButton(
+                TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -86,8 +81,7 @@ class _ZoneManagerState extends State<ZoneManager> {
                   ),
                 ),
                 SizedBox(width: 8),
-                RaisedButton(
-                  color: Colors.white,
+                ElevatedButton(
                   child: Text(
                     "Save".toUpperCase(),
                     style: TextStyle(
@@ -121,11 +115,22 @@ class _ZoneManagerState extends State<ZoneManager> {
         appBar: AppBar(
           title: Text('Zone Manager'),
           actions: [
-            FlatButton(
+            TextButton(
                 onPressed: () {
                   _displayDialog();
                 },
-                child: FaIcon(FontAwesomeIcons.plus))
+                child: FaIcon(FontAwesomeIcons.plus)),
+            TextButton(
+                onPressed: () {
+                  setState(() {
+                    plantList.plantList.forEach((element) {
+                      if (!zoneList.zoneList.contains(element.homeZone)) {
+                        zoneList.zoneList.add(element.homeZone);
+                      }
+                    });
+                  });
+                },
+                child: FaIcon(FontAwesomeIcons.fileImport))
           ],
         ),
         body: Center(
@@ -159,9 +164,8 @@ class _ZoneManagerState extends State<ZoneManager> {
             padding: const EdgeInsets.fromLTRB(20, 8, 8, 8),
             child: Text('$item'),
           )),
-          FlatButton(
-              height: 50,
-              minWidth: 50,
+          TextButton(
+
               // color: Colors.black,
               // shape: ,
               child: FaIcon(FontAwesomeIcons.trash),

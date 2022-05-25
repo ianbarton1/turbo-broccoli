@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
-import 'package:turbo_broccoli/shared/zone_map.dart';
 
 class PlantCollection {
   List<Plant> plantList = [];
   bool _holidayMode = false;
+  DateTime _holidayFinishDate;
 
   PlantCollection();
 
@@ -22,12 +20,15 @@ class PlantCollection {
     });
   }
 
-  void changeHolidayMode(bool enable) {
+  void changeHolidayMode(bool enable, DateTime holidayExpiry) {
+    // _holidayFinishDate = safeDateTime(holidayExpiry);
+    _holidayFinishDate = holidayExpiry;
     plantList.forEach((element) {
-      element.holidayMode(enable);
+      element.holidayMode(enable, _holidayFinishDate);
     });
 
     _holidayMode = enable;
+    orderCollection(false);
   }
 
   void reindexZones(List<String> zoneList) {
@@ -53,16 +54,16 @@ class PlantCollection {
   }
 
   void orderCollection(bool sortbyid) {
+    DateTime activeDate = _holidayMode
+        ? _holidayFinishDate
+        : DateTime.now().subtract(Duration(hours: 12));
     if (!sortbyid) {
       plantList.sort((a, b) {
         // int cmp1 = a.scheduledDate().compareTo(b.scheduledDate());
         int cmp1 = b
-            .filterDatesBetween(DateTime.now().subtract(Duration(hours: 12)))
+            .filterDatesBetween(activeDate)
             .toString()
-            .compareTo(a
-                .filterDatesBetween(
-                    DateTime.now().subtract(Duration(hours: 12)))
-                .toString());
+            .compareTo(a.filterDatesBetween(activeDate).toString());
         if (cmp1 != 0) return cmp1;
         int cmp = a.section.compareTo(b.section);
         if (cmp != 0) return cmp;
@@ -76,8 +77,9 @@ class PlantCollection {
   }
 
   int liveCount() {
-    int result =
-        dayCount(DateTime.now().add(Duration(days: _holidayMode ? 14 : 0)));
+    //THE FUCKING CODE
+    debugPrint("The current holiday Date is $_holidayFinishDate");
+    int result = dayCount(_holidayFinishDate);
     print('liveCount= $result');
     return result;
   }

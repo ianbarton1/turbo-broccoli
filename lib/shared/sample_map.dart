@@ -1,7 +1,7 @@
 import 'package:turbo_broccoli/shared/sample.dart';
 
 class SampleMap {
-  List<Sample> samples = List();
+  List<Sample> samples = [];
 
   SampleMap();
 
