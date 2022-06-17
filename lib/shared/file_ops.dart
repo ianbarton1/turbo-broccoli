@@ -12,30 +12,24 @@ import 'package:turbo_broccoli/shared/zone_map.dart';
 void saveDisk(PlantCollection saveData, ZoneMap saveZone, SampleMap saveSamples,
     Database database) async {
   SharedPreferences plants = await SharedPreferences.getInstance();
-  plants.setString('plants', jsonEncode(saveData.toJson()));
-  print('savedisk');
-  print(jsonEncode(saveData.toJson()));
-  saveData.saveToDatabase(database);
+
+  saveData.savePlantsToDatabase(database);
 
   plants.setString('zones', jsonEncode(saveZone.zoneList));
   print(jsonEncode(saveZone.zoneList));
-  plants.setString('samples', jsonEncode(saveSamples.toJson()));
-  print(jsonEncode(saveSamples.toJson()));
+  // plants.setString('samples', jsonEncode(saveSamples.toJson()));
+  // print(jsonEncode(saveSamples.toJson()));
+
+  saveSamples.saveToDatabase(database);
 }
 
-Future<List<dynamic>> loadDisk(Database database) async {
-  SharedPreferences plants = await SharedPreferences.getInstance();
-
+Future<List<dynamic>> loadPlants(Database database) async {
   final List<Map<String, dynamic>> plantmaps = await database.query('plants');
   print("plantsmaps");
   String plantObjects = jsonEncode(plantmaps);
   print("end of plantsmaps");
 
-  //loadData = PlantCollection();
   List<dynamic> loadData;
-  if (!plants.containsKey('plants')) {
-    plants.setString('plants', '[]');
-  }
   loadData = jsonDecode(plantObjects);
 
   return loadData;
@@ -57,14 +51,12 @@ Future<ZoneMap> loadZones() async {
 }
 
 //get sample data from disk (the raw data not in object form)
-Future<List<dynamic>> loadSamples() async {
-  SharedPreferences plants = await SharedPreferences.getInstance();
-  List<dynamic> loadData;
-  if (!plants.containsKey('samples')) {
-    plants.setString('samples', '[]');
-  }
-  // loadData = jsonDecode(plants.get('zones'));
-  loadData = jsonDecode(plants.get('samples')) as List<dynamic>;
+Future<List<dynamic>> loadSamples(Database database) async {
+  // SharedPreferences plants = await SharedPreferences.getInstance();
+  final List<Map<String, dynamic>> sampleMaps = await database.query('samples');
+
+  String sampleObjects = jsonEncode(sampleMaps);
+  List<dynamic> loadData = jsonDecode(sampleObjects);
 
   return loadData;
 }
@@ -73,22 +65,22 @@ SampleMap jsonToSampleMap(List<dynamic> temp) {
   SampleMap result = new SampleMap();
   temp.forEach((e) {
     result.addNew(new Sample(
-      maxWeight: e['maxWeight'],
-      lastChecked: DateTime.parse(e['lastChecked']),
-      sampleID: e['sampleID'],
+      maxWeight: e['start_value'],
+      lastChecked: DateTime.parse(e['last_checked']),
+      sampleID: e['sample_name'],
     ));
   });
 
   return result;
 }
 
-Future<SampleMap> sampleFromDisk() async {
-  List<dynamic> temp = await loadSamples();
+Future<SampleMap> sampleFromDisk(Database database) async {
+  List<dynamic> temp = await loadSamples(database);
   return jsonToSampleMap(temp);
 }
 
 Future<PlantCollection> fromDisk(Database database) async {
-  List<dynamic> temp = await loadDisk(database);
+  List<dynamic> temp = await loadPlants(database);
   return jsonToCollection(temp, database);
 }
 

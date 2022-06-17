@@ -235,7 +235,7 @@ class _PlantCardState extends State<PlantCard> {
                         ? TextButton(
                             onLongPress: () {
                               plantList.plantList[widget.index]
-                                  .removePictures();
+                                  .removeAllPictures();
                               plantList.removePlant(
                                   widget.tommy.uid, widget.database);
                               print('attempt remove');

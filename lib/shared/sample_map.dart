@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
 
 class SampleMap {
@@ -30,5 +32,13 @@ class SampleMap {
 
   List<Map<String, dynamic>> toJson() {
     return (samples.map((e) => e.toJson())).toList();
+  }
+
+  void saveToDatabase(Database database) {
+    print("Save Samples Method Called");
+    samples.forEach((element) async {
+      await database.insert('samples', element.toJson(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    });
   }
 }

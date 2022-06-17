@@ -36,9 +36,9 @@ class Plant {
   double multiplier;
   int section;
   int zone;
-  int checkStatus = 0;
-  int dbwLow = 1;
-  int dbwHigh = 100;
+  int checkStatus;
+  int dbwLow;
+  int dbwHigh;
   String homeZone;
   int loadBalancingOffset = 0;
   bool _holidayMode = false;
@@ -48,62 +48,57 @@ class Plant {
   dynamic tempImage;
 
   Plant(
-      {this.uid,
-      this.name,
+      {this.uid = 1,
+      this.name = '',
       this.previousWater,
       this.lastWatered,
+      this.activeWatered,
       this.nextWater,
-      this.dbw,
-      this.multiplier,
+      this.dbw = 7,
+      this.multiplier = 0.75,
       this.section,
       this.zone,
       this.checkStatus,
-      this.activeWatered,
       this.homeZone,
-      this.dbwLow,
-      this.dbwHigh,
-      this.waterMode,
-      this.delayFactor,
-      this.isDelayed,
-      this.currentActivitySampleCount,
-      this.currentActivitySum,
-      this.isPlantDynamic,
-      this.lastActivitySampleCount,
-      this.lastActivitySum,
-      this.sampleID,
-      this.loadBalancingOffset,
+      this.dbwLow = 1,
+      this.dbwHigh = 100,
+      this.waterMode = false,
+      this.delayFactor = 2,
+      this.isDelayed = false,
+      this.currentActivitySampleCount = 0,
+      this.currentActivitySum = 0,
+      this.isPlantDynamic = false,
+      this.lastActivitySampleCount = 0,
+      this.lastActivitySum = 0,
+      this.sampleID = '',
+      this.loadBalancingOffset = 0,
       this.database}) {
-    if (this.dbwLow == null) this.dbwLow = 1;
-    if (this.dbwHigh == null) this.dbwHigh = 100;
-    if (this.isPlantDynamic == null) this.isPlantDynamic = false;
-    if (this.sampleID == null) this.sampleID = '';
-    if (this.currentActivitySampleCount == null) currentActivitySampleCount = 0;
-    if (this.currentActivitySum == null) currentActivitySum = 0;
-    if (this.lastActivitySampleCount == null) lastActivitySampleCount = 0;
-    if (this.lastActivitySum == null) lastActivitySum = 0;
-    if (this.isDelayed == null) isDelayed = false;
-    if (this.waterMode == null) waterMode = false;
-    if (this.delayFactor == null) delayFactor = 2;
-    if (this.dbw == null) dbw = 7;
-    if (this.loadBalancingOffset == null) loadBalancingOffset = 0;
-
     getDatabaseImage();
+    if (previousWater == null || lastWatered == null || activeWatered == null) {
+      this.previousWater =
+          safeDateTime(DateTime.now().subtract(Duration(days: 7)));
+      this.lastWatered =
+          safeDateTime(DateTime.now().subtract(Duration(days: 0)));
+      this.activeWatered = this.lastWatered;
+    }
   }
 
+//Gets databaseimages from the database and converts them to in-memory copies. Currently this will only get a maximum of 20 images
+//FIXME: add offset such that the number of images held in memory can be kept to some constant whilst allowing more than 20 in memory.
   Future<void> getDatabaseImage() async {
     plantImage = [];
     plantDateTime = [];
-    tempImage = await database.query("plant_images",
-        columns: ["image", "date_time"],
-        where: 'plantid = ?',
-        whereArgs: [uid],
-        limit: 20,
-        orderBy: "date_time DESC");
-
-    // plantImage = new PlantImage(
-    //     plantImage: Image.memory(tempImage[0]['image']),
-    //     plantdatetime: DateTime.fromMillisecondsSinceEpoch(
-    //         (tempImage[0]['date_time'] * 1000)));
+    try {
+      tempImage = await database.query("plant_images",
+          columns: ["image", "date_time"],
+          where: 'plantid = ?',
+          whereArgs: [uid],
+          limit: 20,
+          orderBy: "date_time DESC");
+    } catch (e) {
+      debugPrint("Error retrieving image from database, $e");
+      tempImage = [];
+    }
 
     tempImage.forEach((e) {
       plantImage.add(new Image.memory(e['image']));
@@ -112,36 +107,26 @@ class Plant {
             new DateTime.fromMillisecondsSinceEpoch((e['date_time'] * 1000)));
       else
         plantDateTime.add(null);
-      print("adding image");
     });
-
-    // tempImage['date_time'].forEach((int currentDateTime) {
-    //   plantDateTime.add(
-    //       new DateTime.fromMillisecondsSinceEpoch((currentDateTime * 1000)));
-    // });
-    // plantImage = new Image.memory(tempImage[0]['image']);
-    // plantDateTime =
-    //     DateTime.fromMillisecondsSinceEpoch((tempImage[0]['date_time'] * 1000));
   }
 
-  Future<void> imageHistory() async {}
-
-  Future<void> removePictures() async {
+//Removes all pictures associated with a plant - useful for when the plant is to be removed and the images associated should be
+//cleaned before the next plant
+  Future<void> removeAllPictures() async {
     await database
         .delete("plant_images", where: "plantid = ?", whereArgs: [uid]);
   }
 
+//Function that produces a 'Safe' DateTime i.e. it zeroes the time aspect of the DateTime class.
   DateTime safeDateTime(DateTime unsafeDateTime) {
     return DateTime(
         unsafeDateTime.year, unsafeDateTime.month, unsafeDateTime.day);
   }
 
+//This function will return true if the selected plant's scheduled date is before the input date used to sort the collection
+//
   bool filterDatesBetween(DateTime selectedDate) {
-    // startDate = safeDateTime(startDate);
-    //  selectedDate = safeDateTime(selectedDate);
-
     if (!scheduledDate().isAfter(selectedDate)) return true;
-
     return false;
   }
 
@@ -151,6 +136,7 @@ class Plant {
   }
 
 //this method waters the plant and updates all the values to with that.
+//FIXME: The logic in this function isn't exactly clear, too much is going on.
   void waterPlant() {
     if (waterMode == false && isDelayed) {
       multiplier *= delayFactor;
@@ -197,8 +183,8 @@ class Plant {
     print("suggestWaterDate: $realDbw");
     //constrain within the limits imposed
     realDbw = max(realDbw, dbwLow.toDouble());
-
     realDbw = min(realDbw, dbwHigh.toDouble());
+
     print("suggestWaterDate: $realDbw");
 
     return safeDateTime(lastWatered.add(new Duration(days: realDbw.toInt())));
@@ -296,7 +282,8 @@ class Plant {
       nextWater = suggestedWaterDate();
       multiplier = tempMultiplier;
 
-      if (nextWater >= holidayEndDate) {
+      if (nextWater > holidayEndDate ||
+          safeDateTime(lastWatered) == safeDateTime(DateTime.now())) {
         // nextWater = suggestedWaterDate();
         _holidayMode = false;
       } else {

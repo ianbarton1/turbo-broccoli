@@ -14,6 +14,7 @@ import 'package:turbo_broccoli/pages/zone_manager.dart';
 import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
+import 'package:turbo_broccoli/shared/plant.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'package:turbo_broccoli/shared/sample_map.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -78,9 +79,15 @@ void main() async {
   final Database database = await openDatabase(documentsPath,
       onCreate: (db, version) {
         // Run the CREATE TABLE statement on the database.
+        print("Database onCreate Method called.");
         db.execute(
           'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
         );
+
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS zones (id INTEGER PRIMARY KEY, section_name TEXT)");
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS samples (id INTEGER PRIMARY KEY, sample_name TEXT, start_value INTEGER)");
         if (version == 1) {
           db.execute(
             'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, FOREIGN KEY(plantid) REFERENCES plants(uid))',
@@ -97,6 +104,11 @@ void main() async {
         db.execute(
           'CREATE TABLE IF NOT EXISTS plants(uid INTEGER PRIMARY KEY, name TEXT, previousWater TEXT, lastWatered TEXT, nextWater TEXT, activeWatered TEXT, waterMode INT, isDelayed INT, delayFactor REAL, sampleID TEXT, isPlantDynamic INTEGER, lastActivitySum REAL, lastActivitySampleCount INTEGER, currentActivitySum REAL, currentActivitySampleCount INTEGER, dbw INTEGER, multiplier REAL, section INTEGER, zone INTEGER, checkStatus INTEGER, dbwLow INTEGER, dbwHigh INTEGER, homeZone TEXT, loadBalancingOffset INTEGER)',
         );
+
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS zones (id INTEGER PRIMARY KEY, section_name TEXT)");
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS samples (id INTEGER PRIMARY KEY, sample_name TEXT, start_value INTEGER, last_checked TEXT)");
         return db.execute(
           'CREATE TABLE IF NOT EXISTS plant_images(pictureid INTEGER PRIMARY KEY, plantid INTEGER NOT NULL, image BLOB, date_time INTEGER, FOREIGN KEY(plantid) REFERENCES plants(uid))',
         );
@@ -144,7 +156,7 @@ class _HomeState extends State<Home> {
 
     plantList = await fromDisk(widget.database);
     zoneList = await loadZones();
-    sampleList = await sampleFromDisk();
+    sampleList = await sampleFromDisk(widget.database);
     if (plantList == null) plantList = new PlantCollection();
     if (zoneList == null) zoneList = new ZoneMap();
     if (sampleList == null) sampleList = new SampleMap();
@@ -179,7 +191,7 @@ class _HomeState extends State<Home> {
     }
 
     //
-    if (!zoneList.zoneList.contains(areaFilter))
+    if (zoneList != null && !zoneList.zoneList.contains(areaFilter))
       areaFilter = zoneList?.zoneList?.first;
 
     return MaterialApp(
@@ -228,6 +240,13 @@ class _HomeState extends State<Home> {
               style: TextStyle(fontSize: 18),
             ),
             actions: [
+              IconButton(
+                  onPressed: () {
+                    Plant testPlant = Plant();
+                    testPlant.waterPlant();
+                    debugPrint(testPlant.toJson().toString());
+                  },
+                  icon: Icon((Icons.ac_unit))),
               IconButton(
                   color: (sampleList != null && sampleList.needsUpdate())
                       ? Colors.redAccent

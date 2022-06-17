@@ -9,7 +9,7 @@ class PlantCollection {
 
   PlantCollection();
 
-  void saveToDatabase(Database database) async {
+  void savePlantsToDatabase(Database database) async {
     // await database.delete('plants', where: null);
     plantList.forEach((element) async {
       await database.insert(
@@ -86,6 +86,7 @@ class PlantCollection {
 
   int dayCount(DateTime selectedDate) {
     int result = 0;
+    if (selectedDate == null) selectedDate = DateTime.now();
     selectedDate = selectedDate.subtract(Duration(hours: 12));
     plantList.forEach((element) {
       if (!element.scheduledDate().isAfter(selectedDate)) result++;

@@ -29,9 +29,9 @@ class Sample {
   }
 
   Map<String, dynamic> toJson() => {
-        'maxWeight': maxWeight,
-        'sampleID': sampleID,
-        'lastChecked': lastChecked != null
+        'start_value': maxWeight,
+        'sample_name': sampleID,
+        'last_checked': lastChecked != null
             ? DateFormat('yyyy-MM-dd').format(lastChecked)
             : null,
       };
