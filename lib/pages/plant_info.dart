@@ -12,51 +12,19 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 
-class PlantStatusPainter extends CustomPainter {
-  PlantCollection plantCollection;
-  int currentIndex;
-
-  PlantStatusPainter({this.plantCollection, this.currentIndex});
-
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = Colors.green
-      ..style = PaintingStyle.fill;
-
-    int itemsInRow = 14;
-    int totalRows = (plantCollection.liveCount() / itemsInRow).ceil();
-    for (int i = 0; i < plantCollection.liveCount(); i++) {
-      debugPrint(plantCollection.plantList[i].checkStatus.toString());
-      switch (plantCollection.plantList[i].checkStatus) {
-        case 1:
-          paint..color = Colors.red;
-          break;
-        case 2:
-          paint..color = Colors.green;
-          break;
-        default:
-          paint..color = Colors.black;
-      }
-
-      canvas.drawCircle(
-          Offset(size.width / itemsInRow * (i % itemsInRow + 0.5),
-              size.height / totalRows * ((i / itemsInRow).floor() + 0.5)),
-          10,
-          paint);
-    }
-  }
-
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
-}
+import '../shared/plantWateringProgressIndicator.dart';
 
 class PlantInfo extends StatefulWidget {
   final Plant plant;
   final Database database;
   final bool showAppBar;
+  final int drawIndex;
   PlantInfo(
-      {this.plant, this.database, this.updateParent, this.showAppBar = true});
+      {this.plant,
+      this.database,
+      this.updateParent,
+      this.showAppBar = true,
+      this.drawIndex = 0});
   dynamic plantPicture;
   Function updateParent;
 
@@ -208,12 +176,6 @@ class _PlantInfoState extends State<PlantInfo> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomPaint(
-                      foregroundPainter: PlantStatusPainter(
-                          plantCollection: plantList, currentIndex: 0),
-                      size: Size(MediaQuery.of(context).size.width,
-                          (plantList.liveCount() / 10.00).ceil() * 20.00),
-                    ),
                     Container(
                       color: Colors.green[900],
                       width: double.infinity,

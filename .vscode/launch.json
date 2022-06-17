@@ -9,8 +9,8 @@
             "name": "turbo-broccoli",
             "request": "launch",
             "type": "dart",
-            // "flutterMode": "release",
-            "flutterMode": "debug",
+            "flutterMode": "release",
+            // "flutterMode": "debug",
 
             "args": ["--ignore-deprecation"]
         }

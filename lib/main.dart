@@ -15,6 +15,7 @@ import 'package:turbo_broccoli/shared/card.dart';
 import 'package:turbo_broccoli/shared/drawer.dart';
 import 'package:turbo_broccoli/shared/file_ops.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
+import 'package:turbo_broccoli/shared/plantWateringProgressIndicator.dart';
 import 'package:turbo_broccoli/shared/plant_collection.dart';
 import 'package:turbo_broccoli/shared/sample_map.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -173,6 +174,7 @@ class _HomeState extends State<Home> {
       new PageController(initialPage: 0, keepPage: true, viewportFraction: 1);
 
   String areaFilter = "";
+  int currentPageIndex = 0;
 
   @override
   void initState() {
@@ -192,7 +194,11 @@ class _HomeState extends State<Home> {
 
     //
     if (zoneList != null && !zoneList.zoneList.contains(areaFilter))
-      areaFilter = zoneList?.zoneList?.first;
+      try {
+        areaFilter = zoneList?.zoneList?.first;
+      } catch (e) {
+        areaFilter = "";
+      }
 
     return MaterialApp(
       routes: {
@@ -240,13 +246,13 @@ class _HomeState extends State<Home> {
               style: TextStyle(fontSize: 18),
             ),
             actions: [
-              IconButton(
-                  onPressed: () {
-                    Plant testPlant = Plant();
-                    testPlant.waterPlant();
-                    debugPrint(testPlant.toJson().toString());
-                  },
-                  icon: Icon((Icons.ac_unit))),
+              // IconButton(
+              //     onPressed: () {
+              //       Plant testPlant = Plant();
+              //       testPlant.waterPlant();
+              //       debugPrint(testPlant.toJson().toString());
+              //     },
+              //     icon: Icon((Icons.ac_unit))),
               IconButton(
                   color: (sampleList != null && sampleList.needsUpdate())
                       ? Colors.redAccent
@@ -322,112 +328,29 @@ class _HomeState extends State<Home> {
           body: Center(
               child: liveCount > 0
                   ? (!_showAll
-                      ? PageView.builder(
-                          controller: _wateringSessionController,
-                          itemCount: plantList != null
-                              ? min(plantList.plantList.length, liveCount) + 2
-                              : 0,
-                          itemBuilder: (context, index) {
-                            return plantList != null
-                                ? (index <
-                                            min(plantList.plantList.length,
-                                                    liveCount) +
-                                                1 &&
-                                        index > 0)
-                                    ? InkWell(
-                                        child: Container(
-                                          height: 1000,
-                                          child: PlantInfo(
-                                              updateParent: () {
-                                                updateParent();
-                                              },
-                                              showAppBar: false,
-                                              database: widget.database,
-                                              plant: plantList
-                                                  .plantList[index - 1]),
-                                        ),
-                                        onTap: () {},
-                                      )
-                                    : Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Text("Finish",
-                                                style: TextStyle(fontSize: 60)),
-                                            SizedBox(height: 50),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                IconButton(
-                                                    iconSize: 60,
-                                                    color: Colors.red[400],
-                                                    onPressed: () {
-                                                      _wateringSessionController.animateToPage(
-                                                          _wateringSessionController
-                                                                      .page
-                                                                      .toInt() ==
-                                                                  0
-                                                              ? min(
-                                                                  plantList
-                                                                      .plantList
-                                                                      .length,
-                                                                  liveCount)
-                                                              : 1,
-                                                          curve:
-                                                              Curves.decelerate,
-                                                          duration: Duration(
-                                                              milliseconds:
-                                                                  300));
-                                                    },
-                                                    icon: FaIcon(
-                                                      index == 0
-                                                          ? FontAwesomeIcons
-                                                              .anglesRight
-                                                          : FontAwesomeIcons
-                                                              .anglesLeft,
-                                                      size: 60.00,
-                                                    )),
-                                                SizedBox(
-                                                  width: 50,
-                                                ),
-                                                IconButton(
-                                                    iconSize: 60,
-                                                    color: Colors.green[400],
-                                                    onPressed: () {
-                                                      print(
-                                                          'this button works');
-                                                      plantList.actionChanges();
-                                                      plantList.orderCollection(
-                                                          _showAll);
-                                                      saveDisk(
-                                                          plantList,
-                                                          zoneList,
-                                                          sampleList,
-                                                          widget.database);
-                                                      _wateringSessionController
-                                                          .animateToPage(1,
-                                                              curve: Curves
-                                                                  .decelerate,
-                                                              duration: Duration(
-                                                                  milliseconds:
-                                                                      300));
-                                                      setState(() {});
-                                                    },
-                                                    icon: FaIcon(
-                                                      FontAwesomeIcons.thumbsUp,
-                                                      size: 60.00,
-                                                    )),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                : Center();
-                          })
+                      ? Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CustomPaint(
+                                foregroundPainter: PlantStatusPainter(
+                                    plantCollection: plantList,
+                                    currentIndex: _wateringSessionController
+                                            .positions.isEmpty
+                                        ? -1
+                                        : currentPageIndex - 1),
+                                size: Size(
+                                    MediaQuery.of(context).size.width,
+                                    (plantList.liveCount() / 10.00).ceil() *
+                                        20.00),
+                              ),
+                            ),
+                            Divider(
+                              thickness: 2,
+                            ),
+                            Expanded(child: plantWateringSession(context)),
+                          ],
+                        )
                       : Column(
                           children: [
                             DropdownButton<String>(
@@ -496,5 +419,94 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  PageView plantWateringSession(BuildContext context) {
+    return PageView.builder(
+        onPageChanged: (value) {
+          currentPageIndex = value;
+          updateParent();
+        },
+        controller: _wateringSessionController,
+        itemCount: plantList != null
+            ? min(plantList.plantList.length, liveCount) + 2
+            : 0,
+        itemBuilder: (context, index) {
+          return plantList != null
+              ? (index < min(plantList.plantList.length, liveCount) + 1 &&
+                      index > 0)
+                  ? InkWell(
+                      child: Container(
+                        height: 1000,
+                        child: PlantInfo(
+                          updateParent: () {
+                            updateParent();
+                          },
+                          showAppBar: false,
+                          database: widget.database,
+                          plant: plantList.plantList[index - 1],
+                          drawIndex: index - 1,
+                        ),
+                      ),
+                      onTap: () {},
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text("Finish", style: TextStyle(fontSize: 60)),
+                          SizedBox(height: 50),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                  iconSize: 60,
+                                  color: Colors.red[400],
+                                  onPressed: () {
+                                    _wateringSessionController.animateToPage(
+                                        _wateringSessionController.page
+                                                    .toInt() ==
+                                                0
+                                            ? min(plantList.plantList.length,
+                                                liveCount)
+                                            : 1,
+                                        curve: Curves.decelerate,
+                                        duration: Duration(milliseconds: 300));
+                                  },
+                                  icon: FaIcon(
+                                    index == 0
+                                        ? FontAwesomeIcons.anglesRight
+                                        : FontAwesomeIcons.anglesLeft,
+                                    size: 60.00,
+                                  )),
+                              SizedBox(
+                                width: 50,
+                              ),
+                              IconButton(
+                                  iconSize: 60,
+                                  color: Colors.green[400],
+                                  onPressed: () {
+                                    print('this button works');
+                                    plantList.actionChanges();
+                                    plantList.orderCollection(_showAll);
+                                    saveDisk(plantList, zoneList, sampleList,
+                                        widget.database);
+                                    _wateringSessionController.animateToPage(1,
+                                        curve: Curves.decelerate,
+                                        duration: Duration(milliseconds: 300));
+                                    setState(() {});
+                                  },
+                                  icon: FaIcon(
+                                    FontAwesomeIcons.thumbsUp,
+                                    size: 60.00,
+                                  )),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+              : Center();
+        });
   }
 }
