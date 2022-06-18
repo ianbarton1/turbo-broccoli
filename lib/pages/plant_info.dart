@@ -134,6 +134,11 @@ class _PlantInfoState extends State<PlantInfo> {
 
   @override
   Widget build(BuildContext context) {
+    int pictureAge = widget.plant.plantDateTime[pictureIndex]
+            ?.difference(DateTime.now())
+            ?.inDays
+            ?.abs() ??
+        0;
     // super.build(context);
     return Scaffold(
         appBar: widget.showAppBar
@@ -245,7 +250,12 @@ class _PlantInfoState extends State<PlantInfo> {
                     ),
                     plantPictureReal.length > 0
                         ? Text(
-                            "Photo Taken on : ${widget.plant.plantDateTime[pictureIndex]}")
+                            "Photo Taken on : ${widget.plant.plantDateTime[pictureIndex]}",
+                            //FIXME: the number of days between pictures before turning red should be plant-specific. For now I will have one month.
+                            style: pictureAge >= 30
+                                ? TextStyle(color: Colors.red)
+                                : null,
+                          )
                         : Container(),
                     Center(
                       child: Row(
