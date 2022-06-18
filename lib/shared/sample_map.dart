@@ -53,7 +53,15 @@ class SampleMap {
     });
   }
 
-  void removeSampleFromDatabase(Database database) {
-    database.delete("samples", where: null);
+  void removeSampleFromDatabase(Database database, int id) {
+    try {
+      int databaseid = samples[id].databaseID;
+      print(samples.toString());
+      database.delete("samples", where: "id = ?", whereArgs: [databaseid]);
+      samples.removeAt(id);
+    } catch (e) {
+      print(e.toString());
+      print("Error encountered when trying to remove sample with index $id");
+    }
   }
 }

@@ -217,6 +217,7 @@ class _HomeState extends State<Home> {
               notifyParent: () {
                 setState(() {});
               },
+              database: widget.database,
             ),
         '/sample_recorder': (context) => SampleRecorder(
               notifyParent: () {

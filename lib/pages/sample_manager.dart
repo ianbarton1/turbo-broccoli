@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sqflite/sqlite_api.dart';
 import 'package:turbo_broccoli/main.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
 
 class SampleManager extends StatefulWidget {
   final Function() notifyParent;
+  final Database database;
 
-  SampleManager({this.notifyParent});
+  SampleManager({this.notifyParent, this.database});
   @override
   _SampleManagerState createState() => _SampleManagerState();
 }
@@ -143,7 +145,16 @@ class _SampleManagerState extends State<SampleManager> {
                 onPressed: () {
                   _displayDialog();
                 },
-                child: FaIcon(FontAwesomeIcons.plus))
+                child: FaIcon(FontAwesomeIcons.plus)),
+            TextButton(
+                onPressed: null,
+                onLongPress: () {
+                  while (sampleList.samples.isNotEmpty) {
+                    sampleList.removeSampleFromDatabase(
+                        widget.database, sampleList.samples.length - 1);
+                  }
+                },
+                child: FaIcon(FontAwesomeIcons.trash))
           ],
         ),
         body: Center(
@@ -159,11 +170,11 @@ class _SampleManagerState extends State<SampleManager> {
 
   List<ListTile> getListItems() => sampleList.samples
       .asMap()
-      .map((i, item) => MapEntry(i, buildTenableListTile(item.sampleID, i)))
+      .map((i, item) => MapEntry(i, buildTenableListTile(item, i)))
       .values
       .toList();
 
-  ListTile buildTenableListTile(String item, int index) {
+  ListTile buildTenableListTile(Sample item, int index) {
     return ListTile(
       contentPadding: EdgeInsets.all(10),
       tileColor: Colors.green[900],
@@ -175,13 +186,13 @@ class _SampleManagerState extends State<SampleManager> {
           Expanded(
               child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 8, 8),
-            child: Text(item),
+            child: Text("${item.sampleID} ${item.databaseID.toString()}"),
           )),
           TextButton(
               child: FaIcon(FontAwesomeIcons.trash),
               onPressed: () {
                 setState(() {
-                  sampleList.samples.removeAt(index);
+                  sampleList.removeSampleFromDatabase(widget.database, index);
                   widget.notifyParent();
                 });
               }),

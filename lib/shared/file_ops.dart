@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/shared/plant.dart';
@@ -12,6 +13,8 @@ import 'package:turbo_broccoli/shared/zone_map.dart';
 void saveDisk(PlantCollection saveData, ZoneMap saveZone, SampleMap saveSamples,
     Database database) async {
   SharedPreferences plants = await SharedPreferences.getInstance();
+
+  debugPrint("SAVE DISK ROUTINE CALLED");
 
   saveData.savePlantsToDatabase(database);
 
