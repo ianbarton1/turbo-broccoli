@@ -6,8 +6,9 @@ class Sample {
   int maxWeight;
   String sampleID;
   DateTime lastChecked;
+  int databaseID;
 
-  Sample({this.maxWeight, this.lastChecked, this.sampleID});
+  Sample(this.databaseID, {this.maxWeight, this.lastChecked, this.sampleID});
 
   bool needsUpdate() {
     if (lastChecked.isSameDay(DateTime.now().subtract(Duration(hours: 12))))
@@ -29,6 +30,7 @@ class Sample {
   }
 
   Map<String, dynamic> toJson() => {
+        'id': databaseID,
         'start_value': maxWeight,
         'sample_name': sampleID,
         'last_checked': lastChecked != null

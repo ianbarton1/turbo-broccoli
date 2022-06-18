@@ -65,6 +65,7 @@ SampleMap jsonToSampleMap(List<dynamic> temp) {
   SampleMap result = new SampleMap();
   temp.forEach((e) {
     result.addNew(new Sample(
+      e['id'],
       maxWeight: e['start_value'],
       lastChecked: DateTime.parse(e['last_checked']),
       sampleID: e['sample_name'],

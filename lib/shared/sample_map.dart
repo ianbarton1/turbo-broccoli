@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:turbo_broccoli/shared/sample.dart';
@@ -6,6 +8,15 @@ class SampleMap {
   List<Sample> samples = [];
 
   SampleMap();
+
+  int getNextSampleID() {
+    int returnID = -1;
+    samples.forEach((element) {
+      returnID = max(returnID, element.databaseID);
+    });
+
+    return returnID + 1;
+  }
 
   //A sample needs attention!
 
@@ -40,5 +51,9 @@ class SampleMap {
       await database.insert('samples', element.toJson(),
           conflictAlgorithm: ConflictAlgorithm.replace);
     });
+  }
+
+  void removeSampleFromDatabase(Database database) {
+    database.delete("samples", where: null);
   }
 }

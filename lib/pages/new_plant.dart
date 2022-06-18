@@ -31,7 +31,7 @@ class _NewPlantState extends State<NewPlant> {
     // create some filler items if the zoneList or sampleList is empty
     if (zoneList.zoneList.isEmpty) zoneList.zoneList.add('No Zone');
     if (sampleList.samples.isEmpty) {
-      sampleList.addNew(Sample(
+      sampleList.addNew(Sample(0,
           sampleID: 'No Sample', maxWeight: 0, lastChecked: DateTime.now()));
       sampleSelect = 'No Sample';
     }

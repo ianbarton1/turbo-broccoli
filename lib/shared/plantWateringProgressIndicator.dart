@@ -14,8 +14,20 @@ class PlantStatusPainter extends CustomPainter with ChangeNotifier {
 
     int itemsInRow = 14;
     int totalRows = (plantCollection.liveCount() / itemsInRow).ceil();
+    int prevZone = plantCollection.plantList.first.section;
     for (int i = 0; i < plantCollection.liveCount(); i++) {
       debugPrint(plantCollection.plantList[i].checkStatus.toString());
+      if (prevZone != plantCollection.plantList[i].section) {
+        canvas.drawLine(
+            Offset(size.width / itemsInRow * (i % itemsInRow + 0.0),
+                size.height / totalRows * ((i / itemsInRow).floor() + 0.2)),
+            Offset(size.width / itemsInRow * (i % itemsInRow + 0.0),
+                size.height / totalRows * ((i / itemsInRow).floor() + 0.8)),
+            Paint()
+              ..color = Colors.amber
+              ..strokeWidth = 2);
+        prevZone = plantCollection.plantList[i].section;
+      }
 
       switch (plantCollection.plantList[i].checkStatus) {
         case 1:

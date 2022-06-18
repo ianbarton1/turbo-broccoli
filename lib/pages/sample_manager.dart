@@ -109,6 +109,7 @@ class _SampleManagerState extends State<SampleManager> {
                   onPressed: () {
                     setState(() {
                       sampleList.addNew(new Sample(
+                        sampleList.getNextSampleID(),
                         sampleID: newSampleName.text,
                         maxWeight: int.parse(newSampleMaxWeight.text),
                         lastChecked: DateTime.now().subtract(Duration(days: 1)),
