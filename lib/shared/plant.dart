@@ -55,7 +55,7 @@ class Plant {
       this.activeWatered,
       this.nextWater,
       this.dbw = 7,
-      this.multiplier = 0.75,
+      this.multiplier = 0.74,
       this.section,
       this.zone,
       this.checkStatus,
@@ -135,6 +135,52 @@ class Plant {
     activeWatered = nextWater;
   }
 
+//run a simulation and see whether this plant is going to be due to be checke on a specified date
+  bool isFutureDate(DateTime queryDate) {
+    queryDate = safeDateTime(queryDate);
+    if (dbw <= 0) dbw = 1;
+
+    //store the original multiplier such that it can be restored at the end of the sim.
+    double originalMultiplier = multiplier;
+    //stores the multiplier in the case that the current multiplier is greater than 1 so we can run the sim.
+    double initialCorrectionToMultiplier = 1.00;
+
+    double simulationMultiplier = 1.00;
+
+    int waterCount = 0;
+    //if the current date is equal to query date then who cares.
+    if (suggestedWaterDate(normalCapRulesApplied: false).isSameDay(queryDate))
+      return true;
+
+    if (multiplier > 1.00) {
+      initialCorrectionToMultiplier = multiplier;
+      simulationMultiplier = 1.00;
+      waterCount = 1;
+    }
+//run the simulation until the querydate is in the past.
+    while (
+        suggestedWaterDate(normalCapRulesApplied: false).isBefore(queryDate)) {
+      // print("$uid ,$waterCount, $simulationMultiplier");
+      if (waterCount % 2 == 0) {
+        simulationMultiplier += 0.26;
+      } else {
+        simulationMultiplier += 0.74;
+      }
+
+      waterCount++;
+
+      multiplier = simulationMultiplier * initialCorrectionToMultiplier;
+
+      if (suggestedWaterDate(normalCapRulesApplied: false)
+          .isSameDay(queryDate)) {
+        multiplier = originalMultiplier;
+        return true;
+      }
+    }
+    multiplier = originalMultiplier;
+    return false;
+  }
+
 //this method waters the plant and updates all the values to with that.
 //FIXME: The logic in this function isn't exactly clear, too much is going on.
   void waterPlant() {
@@ -149,7 +195,7 @@ class Plant {
       if (waterMode == false) setWateringDates();
       lastWatered = DateTime.now();
       dbw = (activeWatered.difference(previousWater).inDays).round();
-      multiplier = 0.75;
+      multiplier = 0.74;
 
       if (isPlantDynamic) {
         lastActivitySampleCount = currentActivitySampleCount;
@@ -166,7 +212,7 @@ class Plant {
 //this method updates the values if the plant has only been checked (no water)
   void checkPlant() {
     DateTime nextWaterBefore = nextWater;
-    multiplier += 0.25;
+    multiplier += 0.26;
     nextWater = suggestedWaterDate();
     if (nextWater.isSameDay(nextWaterBefore) ||
         nextWater.isBefore(nextWaterBefore))
@@ -175,17 +221,21 @@ class Plant {
   }
 
 //this small method returns the next suggested date to check a plant
-  DateTime suggestedWaterDate() {
+  DateTime suggestedWaterDate({bool normalCapRulesApplied = true}) {
     //calculate the ideal real dbw
     double realDbw =
         (dbw.toDouble() * multiplier * dynamicMultiplier()).round().toDouble();
 
-    print("suggestWaterDate: $realDbw");
+    // print("suggestWaterDate: $realDbw");
     //constrain within the limits imposed
-    realDbw = max(realDbw, dbwLow.toDouble());
-    realDbw = min(realDbw, dbwHigh.toDouble());
+    if (normalCapRulesApplied) {
+      realDbw = max(realDbw, dbwLow.toDouble());
+      realDbw = min(realDbw, dbwHigh.toDouble());
+    } else {
+      //FIXME: ignoring the normal cap rules for simulation purposes for now. should really get around to figuring out but who cares.
+    }
 
-    print("suggestWaterDate: $realDbw");
+    // print("suggestWaterDate: $realDbw");
 
     return safeDateTime(lastWatered.add(new Duration(days: realDbw.toInt())));
   }

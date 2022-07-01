@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:turbo_broccoli/pages/activity_preview.dart';
 import 'package:turbo_broccoli/pages/backup.dart';
 import 'package:turbo_broccoli/pages/new_plant.dart';
 import 'package:turbo_broccoli/pages/plant_info.dart';
@@ -231,6 +232,7 @@ class _HomeState extends State<Home> {
                 setState(() {});
               },
             ),
+        '/activity_preview': (context) => ActivityPreviewer(),
       },
       title: 'Turbo Broccoli',
       theme: ThemeData(

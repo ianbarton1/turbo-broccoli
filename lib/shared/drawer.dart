@@ -44,6 +44,15 @@ class _MainMenuState extends State<MainMenu> {
                           });
                         }),
                     ListTile(
+                        leading: Icon(Icons.list_alt),
+                        title: Text('Activity Preview'),
+                        onTap: () {
+                          setState(() {
+                            Navigator.popAndPushNamed(
+                                context, '/activity_preview');
+                          });
+                        }),
+                    ListTile(
                       leading: FaIcon(FontAwesomeIcons.cloudscale),
                       title: Text('Edit Samples'),
                       onTap: () {
@@ -84,7 +93,7 @@ class _MainMenuState extends State<MainMenu> {
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 height: 60,
                 child: Text(
-                  "Ian Barton version 2022.06.19.00.30",
+                  "Ian Barton version 2022.06.19.16.35",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),

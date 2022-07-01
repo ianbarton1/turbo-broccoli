@@ -20,6 +20,16 @@ class PlantCollection {
     });
   }
 
+  int activityOnDay(DateTime queryDate) {
+    int sum = 0;
+
+    plantList.forEach((element) {
+      if (element.isFutureDate(queryDate)) sum++;
+    });
+
+    return sum;
+  }
+
   void changeHolidayMode(bool enable, DateTime holidayExpiry) {
     // _holidayFinishDate = safeDateTime(holidayExpiry);
     _holidayFinishDate = holidayExpiry;

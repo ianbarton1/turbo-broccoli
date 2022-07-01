@@ -134,11 +134,16 @@ class _PlantInfoState extends State<PlantInfo> {
 
   @override
   Widget build(BuildContext context) {
-    int pictureAge = widget.plant.plantDateTime[pictureIndex]
-            ?.difference(DateTime.now())
-            ?.inDays
-            ?.abs() ??
-        0;
+    int pictureAge = 0;
+    try {
+      pictureAge = widget.plant.plantDateTime[pictureIndex]
+              ?.difference(DateTime.now())
+              ?.inDays
+              ?.abs() ??
+          0;
+    } catch (e) {
+      pictureAge = 0;
+    }
     // super.build(context);
     return Scaffold(
         appBar: widget.showAppBar
