@@ -212,19 +212,28 @@ class Plant {
 //this method updates the values if the plant has only been checked (no water)
   void checkPlant() {
     DateTime nextWaterBefore = nextWater;
-    multiplier += 0.26;
-    nextWater = suggestedWaterDate();
-    if (nextWater.isSameDay(nextWaterBefore) ||
-        nextWater.isBefore(nextWaterBefore))
-      nextWater = nextWaterBefore.add(Duration(days: 1));
+    if (dbw < 0) dbw = 1;
+
+    //loop until the day has been incremented at least 1 day (better than the previous logic of adding a day!)
+
+    while (nextWater.isSameDay(nextWaterBefore) ||
+        nextWater.isBefore(nextWaterBefore)) {
+      multiplier += 0.26;
+      nextWater = suggestedWaterDate();
+    }
+
     checkStatus = 0;
   }
 
 //this small method returns the next suggested date to check a plant
   DateTime suggestedWaterDate({bool normalCapRulesApplied = true}) {
+    double rawDynamicMultiplier = dynamicMultiplier();
+
+    if (rawDynamicMultiplier < 0) rawDynamicMultiplier = 1.00;
+
     //calculate the ideal real dbw
     double realDbw =
-        (dbw.toDouble() * multiplier * dynamicMultiplier()).round().toDouble();
+        (dbw.toDouble() * multiplier * rawDynamicMultiplier).round().toDouble();
 
     // print("suggestWaterDate: $realDbw");
     //constrain within the limits imposed
@@ -256,8 +265,16 @@ class Plant {
     //by the now we should have valid values for the SampleCounts and ActivitySums so do the
     //computation and return it
 
-    return (lastActivitySum / lastActivitySampleCount) /
-        (currentActivitySum / currentActivitySampleCount);
+    //final sanity check (do not allow negative dynamic multiplier)
+    double potentialDynamicMultiplier =
+        (lastActivitySum / lastActivitySampleCount) /
+            (currentActivitySum / currentActivitySampleCount);
+
+    if (potentialDynamicMultiplier < 0.00) {
+      return 1.00;
+    }
+
+    return potentialDynamicMultiplier;
   }
 
   //returns true if the plant needs an update from the sample
