@@ -93,7 +93,7 @@ class _MainMenuState extends State<MainMenu> {
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 height: 60,
                 child: Text(
-                  "Ian Barton version 2022.06.19.16.35",
+                  "Ian Barton version 2022.07.12.23.06",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
